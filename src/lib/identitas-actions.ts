@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Balasan } from "@/lib/profil-actions";
+import type { Balasan } from "@/lib/hasil";
 
 async function buangBerkas(url: string | null) {
   if (!url) return;

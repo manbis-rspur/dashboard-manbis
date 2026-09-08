@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export type HasilKomplain = { pesan: string | null; kode: string | null };
-export const komplainAwal: HasilKomplain = { pesan: null, kode: null };
+import type { HasilKomplain } from "@/lib/hasil";
+
+export type { HasilKomplain };
 
 function isi(formData: FormData, nama: string) {
   return String(formData.get(nama) ?? "").trim();

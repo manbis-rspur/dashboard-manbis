@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { gantiSandi } from "@/lib/profil-actions";
-import type { Balasan } from "@/lib/profil-actions";
+import type { Balasan } from "@/lib/hasil";
 
 const awal: Balasan = { ok: false, pesan: "" };
 

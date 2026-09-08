@@ -6,8 +6,8 @@ import {
   tambahAnggota,
   ubahAktif,
   ubahPeran,
-  hasilAwal,
 } from "@/lib/pengguna-actions";
+import { hasilAwal } from "@/lib/hasil";
 import { aturAkses } from "@/lib/komplain-actions";
 
 export type BarisPengguna = {
@@ -57,6 +57,53 @@ function FormAkun({ pengguna }: { pengguna: BarisPengguna }) {
   );
 }
 
+/**
+ * Kotak peran dan tombol aktif untuk satu anggota.
+ *
+ * Keduanya disatukan supaya penolakan dari database — misalnya
+ * "harus selalu ada satu Admin aktif" — punya tempat untuk
+ * ditampilkan. Sebelumnya kegagalan seperti itu lewat tanpa jejak:
+ * pilihannya seolah tersimpan, padahal ditolak.
+ */
+function KendaliPeran({ pengguna }: { pengguna: BarisPengguna }) {
+  const [hasilPeran, ubahPeranAksi] = useActionState(ubahPeran, hasilAwal);
+  const [hasilAktif, ubahAktifAksi] = useActionState(ubahAktif, hasilAwal);
+  const pesan = hasilPeran.pesan ?? hasilAktif.pesan;
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <form action={ubahPeranAksi}>
+          <input type="hidden" name="pengguna_id" value={pengguna.id} />
+          <select
+            name="peran"
+            defaultValue={pengguna.peran}
+            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            className={`${gayaInput} text-sm`}
+            aria-label={`Peran ${pengguna.nama}`}
+          >
+            <option value="Admin">Admin</option>
+            <option value="Staf">Staf</option>
+          </select>
+        </form>
+
+        <form action={ubahAktifAksi}>
+          <input type="hidden" name="pengguna_id" value={pengguna.id} />
+          <input type="hidden" name="aktif" value={String(!pengguna.aktif)} />
+          <button
+            type="submit"
+            className="rounded border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+          >
+            {pengguna.aktif ? "Nonaktifkan" : "Aktifkan"}
+          </button>
+        </form>
+      </div>
+
+      {pesan && <p className="max-w-xs text-right text-xs text-merah">{pesan}</p>}
+    </div>
+  );
+}
+
 export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
   const [hasilTambah, kirimTambah, sedangTambah] = useActionState(tambahAnggota, hasilAwal);
   const [bukaTambah, setBukaTambah] = useState(false);
@@ -84,30 +131,7 @@ export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
                 </p>
               </div>
 
-              <form action={ubahPeran}>
-                <input type="hidden" name="pengguna_id" value={p.id} />
-                <select
-                  name="peran"
-                  defaultValue={p.peran}
-                  onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className={`${gayaInput} text-sm`}
-                  aria-label={`Peran ${p.nama}`}
-                >
-                  <option value="Admin">Admin</option>
-                  <option value="Staf">Staf</option>
-                </select>
-              </form>
-
-              <form action={ubahAktif}>
-                <input type="hidden" name="pengguna_id" value={p.id} />
-                <input type="hidden" name="aktif" value={String(!p.aktif)} />
-                <button
-                  type="submit"
-                  className="rounded border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
-                >
-                  {p.aktif ? "Nonaktifkan" : "Aktifkan"}
-                </button>
-              </form>
+              <KendaliPeran pengguna={p} />
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-garis pt-3">

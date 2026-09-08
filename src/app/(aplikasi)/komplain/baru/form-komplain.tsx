@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { catatKomplain, komplainAwal } from "@/lib/komplain-actions";
+import { catatKomplain } from "@/lib/komplain-actions";
+import { komplainAwal } from "@/lib/hasil";
 import { JALUR, MEDIA, KATEGORI, SUMBER, KEPUASAN } from "@/lib/komplain-pilihan";
 
 const gaya =

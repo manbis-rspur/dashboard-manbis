@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { simpanTindakLanjut, komplainAwal } from "@/lib/komplain-actions";
+import { simpanTindakLanjut } from "@/lib/komplain-actions";
+import { komplainAwal } from "@/lib/hasil";
 import { HASIL, STATUS, GRADING, KEPUASAN, KOMITE } from "@/lib/komplain-pilihan";
 
 const gaya =

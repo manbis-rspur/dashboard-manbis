@@ -5,8 +5,9 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type Hasil = { pesan: string | null; berhasil: string | null };
-export const hasilAwal: Hasil = { pesan: null, berhasil: null };
+import type { Hasil } from "@/lib/hasil";
+
+export type { Hasil };
 
 /** Semua pekerjaan di berkas ini hanya boleh dilakukan Admin. */
 async function pastikanAdmin(): Promise<string | null> {
@@ -122,30 +123,59 @@ export async function tambahAnggota(_s: Hasil, formData: FormData): Promise<Hasi
   return { pesan: null, berhasil: `${nama} sudah ditambahkan.` };
 }
 
-/** Menonaktifkan atau mengaktifkan kembali seorang anggota. */
-export async function ubahAktif(formData: FormData) {
+/**
+ * Menonaktifkan atau mengaktifkan kembali seorang anggota.
+ *
+ * Penolakan dari database diteruskan apa adanya — di situlah
+ * pengaman "harus selalu ada satu Admin aktif" berada, dan
+ * pesannya memang ditulis untuk dibaca orang.
+ */
+export async function ubahAktif(_s: Hasil, formData: FormData): Promise<Hasil> {
   const galat = await pastikanAdmin();
-  if (galat) return;
+  if (galat) return { pesan: galat, berhasil: null };
 
   const penggunaId = Number(formData.get("pengguna_id"));
   const jadikanAktif = formData.get("aktif") === "true";
 
   const supabase = await createClient();
-  await supabase.from("pengguna").update({ aktif: jadikanAktif }).eq("id", penggunaId);
+  const { error } = await supabase
+    .from("pengguna")
+    .update({ aktif: jadikanAktif })
+    .eq("id", penggunaId);
+
+  if (error) return { pesan: bersihkan(error.message), berhasil: null };
 
   revalidatePath("/pengaturan/pengguna");
+  return {
+    pesan: null,
+    berhasil: jadikanAktif ? "Anggota diaktifkan kembali." : "Anggota dinonaktifkan.",
+  };
 }
 
 /** Mengubah peran seorang anggota antara Admin dan Staf. */
-export async function ubahPeran(formData: FormData) {
+export async function ubahPeran(_s: Hasil, formData: FormData): Promise<Hasil> {
   const galat = await pastikanAdmin();
-  if (galat) return;
+  if (galat) return { pesan: galat, berhasil: null };
 
   const penggunaId = Number(formData.get("pengguna_id"));
   const peran = String(formData.get("peran") ?? "Staf");
 
   const supabase = await createClient();
-  await supabase.from("pengguna").update({ peran }).eq("id", penggunaId);
+  const { error } = await supabase
+    .from("pengguna")
+    .update({ peran })
+    .eq("id", penggunaId);
+
+  if (error) return { pesan: bersihkan(error.message), berhasil: null };
 
   revalidatePath("/pengaturan/pengguna");
+  return { pesan: null, berhasil: `Peran diubah menjadi ${peran}.` };
+}
+
+/**
+ * Membuang keterangan teknis dari pesan Postgres, menyisakan
+ * kalimat yang memang ditujukan untuk dibaca petugas.
+ */
+function bersihkan(pesan: string) {
+  return pesan.replace(/^[\s\S]*?(?=Harus selalu ada)/, "").trim() || pesan;
 }

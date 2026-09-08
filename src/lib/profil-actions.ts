@@ -5,7 +5,9 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type Balasan = { ok: boolean; pesan: string };
+import type { Balasan } from "@/lib/hasil";
+
+export type { Balasan };
 
 /** Membuang berkas lama dari penyimpanan supaya tidak menumpuk. */
 async function buangBerkas(url: string | null) {
