@@ -164,15 +164,25 @@ export default async function HalamanDetailKomplain({
               Formulir resmi
             </h2>
             <p className="mb-4 text-sm text-tinta-2">
-              Berisi data terakhir yang sudah disimpan. Buka dengan Word, lalu
-              simpan sebagai PDF bila perlu diarsipkan.
+              Berisi data terakhir yang sudah disimpan, disusun persis mengikuti
+              formulir resmi RSPUR.
             </p>
-            <a
-              href={`/komplain/${k.id}/dokumen`}
-              className="inline-block rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
-            >
-              Unduh formulir komplain
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`/komplain/${k.id}/cetak`}
+                target="_blank"
+                rel="noopener"
+                className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              >
+                Cetak / simpan PDF
+              </a>
+              <a
+                href={`/komplain/${k.id}/dokumen`}
+                className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+              >
+                Unduh berkas Word
+              </a>
+            </div>
           </section>
         </div>
       </div>

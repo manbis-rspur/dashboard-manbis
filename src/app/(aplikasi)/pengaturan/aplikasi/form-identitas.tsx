@@ -13,9 +13,11 @@ const BAWAAN = "#1b6156";
 export function FormIdentitas({
   logoAwal,
   warnaAwal,
+  alamatAwal,
 }: {
   logoAwal: string | null;
   warnaAwal: string | null;
+  alamatAwal: string | null;
 }) {
   const router = useRouter();
   const berkasRef = useRef<HTMLInputElement>(null);
@@ -23,6 +25,7 @@ export function FormIdentitas({
   const [logo, setLogo] = useState(logoAwal);
   const [warna, setWarna] = useState(warnaAwal ?? BAWAAN);
   const [usulan, setUsulan] = useState<string[]>([]);
+  const [alamat, setAlamat] = useState(alamatAwal ?? "");
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [sibuk, setSibuk] = useState(false);
@@ -210,6 +213,48 @@ export function FormIdentitas({
           {kontrasDenganPutih(warna).toFixed(1)} banding 1 — ambang yang lazim
           dipakai adalah 4,5.
         </p>
+      </section>
+
+      <section className="flex flex-col gap-4 border-t border-garis pt-8">
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+            Alamat pada kop dokumen
+          </h2>
+          <p className="mt-1 text-sm text-tinta-2">
+            Muncul di kanan atas formulir komplain yang dicetak, di seberang
+            logo. Tulis apa adanya seperti pada kop surat resmi — termasuk
+            telepon dan email. Pindah baris akan ikut tercetak.
+          </p>
+        </div>
+
+        <textarea
+          value={alamat}
+          onChange={(e) => setAlamat(e.target.value)}
+          rows={4}
+          placeholder={"Jalan ...\nKecamatan ..., Kota ...\nTelp ... · Email ..."}
+          className="w-full rounded border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+        />
+
+        <button
+          type="button"
+          disabled={sibuk}
+          onClick={async () => {
+            setSibuk(true);
+            setGalat(null);
+            setPesan(null);
+            const h = await simpanIdentitas(logo, warna, alamat);
+            if (h.ok) {
+              setPesan("Alamat kop tersimpan.");
+              router.refresh();
+            } else {
+              setGalat(h.pesan);
+            }
+            setSibuk(false);
+          }}
+          className="w-fit rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+        >
+          Simpan alamat
+        </button>
       </section>
 
       {pesan && <p className="text-sm text-hijau">{pesan}</p>}

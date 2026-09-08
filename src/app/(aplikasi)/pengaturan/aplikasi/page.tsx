@@ -13,7 +13,11 @@ export default async function HalamanIdentitas() {
         Logo dan warna yang dipakai di seluruh halaman, termasuk halaman masuk.
       </p>
 
-      <FormIdentitas logoAwal={identitas.logoUrl} warnaAwal={identitas.warnaUtama} />
+      <FormIdentitas
+        logoAwal={identitas.logoUrl}
+        warnaAwal={identitas.warnaUtama}
+        alamatAwal={identitas.alamatKop}
+      />
     </div>
   );
 }

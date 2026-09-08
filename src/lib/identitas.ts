@@ -4,6 +4,8 @@ export type Identitas = {
   logoUrl: string | null;
   warnaUtama: string | null;
   namaUnit: string;
+  /** Alamat dan kontak RS pada kop dokumen cetak. */
+  alamatKop: string | null;
 };
 
 /**
@@ -17,7 +19,7 @@ export async function bacaIdentitas(): Promise<Identitas> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("pengaturan_sistem")
-    .select("logo_url, warna_utama, nama_unit")
+    .select("logo_url, warna_utama, nama_unit, alamat_kop")
     .eq("id", 1)
     .maybeSingle();
 
@@ -25,5 +27,6 @@ export async function bacaIdentitas(): Promise<Identitas> {
     logoUrl: data?.logo_url ?? null,
     warnaUtama: data?.warna_utama ?? null,
     namaUnit: data?.nama_unit ?? "Manajemen Bisnis",
+    alamatKop: data?.alamat_kop ?? null,
   };
 }

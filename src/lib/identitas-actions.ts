@@ -22,11 +22,13 @@ async function buangBerkas(url: string | null) {
 export async function simpanIdentitas(
   logoUrl: string | null,
   warna: string | null,
+  alamatKop?: string | null,
 ): Promise<Balasan> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("simpan_identitas", {
     p_logo_url: logoUrl ?? "",
     p_warna: warna ?? "",
+    p_alamat: alamatKop ?? "",
   });
 
   if (error) return { ok: false, pesan: `Gagal disimpan: ${error.message}` };
