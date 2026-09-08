@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { simpanTindakLanjut } from "@/lib/komplain-actions";
 import { komplainAwal } from "@/lib/hasil";
@@ -41,12 +41,17 @@ export function FormTindakLanjut({ awal }: { awal: NilaiAwal }) {
   const router = useRouter();
   const [hasil, kirim, sedang] = useActionState(simpanTindakLanjut, komplainAwal);
   const [eskalasi, setEskalasi] = useState(awal.perluEskalasi);
-  const [tersimpan, setTersimpan] = useState(false);
 
-  if (hasil.kode && !tersimpan) {
-    setTersimpan(true);
-    router.refresh();
-  }
+  // Memuat ulang data halaman setelah tersimpan, supaya angka SLA dan
+  // riwayat di sebelahnya ikut terbarui.
+  //
+  // Wajib di dalam useEffect: memanggil router.refresh() sambil
+  // menggambar berarti mengubah komponen lain di tengah penggambaran —
+  // React menolaknya, dan formulirnya berhenti menanggapi tanpa pesan
+  // apa pun. Itulah sebabnya tombol simpan terasa mati.
+  useEffect(() => {
+    if (hasil.kode) router.refresh();
+  }, [hasil.kode, router]);
 
   return (
     <form action={kirim} className="flex flex-col gap-5">

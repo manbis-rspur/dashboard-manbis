@@ -109,7 +109,7 @@ export async function simpanTindakLanjut(
   const status = isi(formData, "status") || "Diproses";
   const grading = isiAtauNull(formData, "grading");
 
-  const { error } = await supabase
+  const { data: tersentuh, error } = await supabase
     .from("komplain")
     .update({
       pasien_no_rm: isiAtauNull(formData, "pasien_no_rm"),
@@ -127,16 +127,36 @@ export async function simpanTindakLanjut(
       jenis_komite: eskalasi ? isiAtauNull(formData, "jenis_komite") : null,
       tgl_lapor_komite: eskalasi ? isiAtauNull(formData, "tgl_lapor_komite") : null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) return { pesan: `Gagal disimpan: ${error.message}`, kode: null };
 
-  await supabase.from("komplain_riwayat").insert({
+  // Perubahan yang ditolak aturan keamanan TIDAK menghasilkan galat —
+  // hanya nol baris yang tersentuh. Tanpa pemeriksaan ini, halaman
+  // akan berkata "tersimpan" padahal tidak ada yang berubah.
+  if (!tersentuh || tersentuh.length === 0) {
+    return {
+      pesan:
+        "Tidak ada yang tersimpan. Akun Anda mungkin belum berhak menanggapi " +
+        "komplain — minta Admin memeriksa izinnya di menu Pengguna.",
+      kode: null,
+    };
+  }
+
+  const { error: galatRiwayat } = await supabase.from("komplain_riwayat").insert({
     komplain_id: id,
     aktivitas: pertamaKali ? "Tindak lanjut pertama" : "Pembaruan tindak lanjut",
     detail: `Status: ${status}; Grading: ${grading ?? "belum dinilai"}`,
     oleh: pengguna.id,
   });
+
+  if (galatRiwayat) {
+    return {
+      pesan: `Tindak lanjut tersimpan, tetapi riwayatnya gagal dicatat: ${galatRiwayat.message}`,
+      kode: null,
+    };
+  }
 
   if (eskalasi) {
     await supabase.from("komplain_riwayat").insert({
