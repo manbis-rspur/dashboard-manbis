@@ -114,9 +114,9 @@ const SATUAN = [
 ];
 
 /**
- * Mengubah angka jadi tulisan — dipakai pada surat penawaran dan
- * invoice, karena nilai uang pada dokumen resmi lazim ditulis dua
- * kali: dengan angka dan dengan huruf.
+ * Mengubah angka jadi tulisan — dipakai pada surat penawaran,
+ * karena nilai uang pada dokumen resmi lazim ditulis dua kali:
+ * dengan angka dan dengan huruf.
  */
 export function terbilang(n: number): string {
   const angka = Math.floor(Math.abs(n));

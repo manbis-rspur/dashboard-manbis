@@ -154,24 +154,14 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
               Dokumen
             </h2>
             {nomor ? (
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={`/mcu/${p.id}/cetak?jenis=penawaran`}
-                  target="_blank"
-                  rel="noopener"
-                  className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-                >
-                  Surat penawaran
-                </a>
-                <a
-                  href={`/mcu/${p.id}/cetak?jenis=invoice`}
-                  target="_blank"
-                  rel="noopener"
-                  className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
-                >
-                  Invoice
-                </a>
-              </div>
+              <a
+                href={`/mcu/${p.id}/cetak`}
+                target="_blank"
+                rel="noopener"
+                className="inline-block rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              >
+                Surat penawaran
+              </a>
             ) : (
               <p className="text-sm text-tinta-2">
                 Terbitkan dulu untuk mendapat nomor surat — dokumen resmi tidak
