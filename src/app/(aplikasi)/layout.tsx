@@ -17,6 +17,7 @@ const MENU = [
 const MENU_ADMIN = [
   { href: "/pengaturan/pengguna", label: "Pengguna" },
   { href: "/pengaturan/aplikasi", label: "Tampilan" },
+  { href: "/pengaturan/template", label: "Template" },
 ] as const;
 
 export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {

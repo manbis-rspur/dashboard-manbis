@@ -147,12 +147,30 @@ export default async function HalamanDetailKomplain({
           </section>
         </div>
 
-        <section className="rounded border border-garis bg-permukaan p-5">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
-            Tindak lanjut
-          </h2>
-          <FormTindakLanjut awal={awal} />
-        </section>
+        <div className="flex flex-col gap-6">
+          <section className="rounded border border-garis bg-permukaan p-5">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+              Tindak lanjut
+            </h2>
+            <FormTindakLanjut awal={awal} />
+          </section>
+
+          <section className="rounded border border-garis bg-permukaan p-5">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+              Formulir resmi
+            </h2>
+            <p className="mb-4 text-sm text-tinta-2">
+              Berisi data terakhir yang sudah disimpan. Buka dengan Word, lalu
+              simpan sebagai PDF bila perlu diarsipkan.
+            </p>
+            <a
+              href={`/komplain/${k.id}/dokumen`}
+              className="inline-block rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            >
+              Unduh formulir komplain
+            </a>
+          </section>
+        </div>
       </div>
     </div>
   );
