@@ -237,12 +237,13 @@ $pola$Buatkan kalender konten dan strategi publikasi Humas RSPUR yang lengkap, t
 - Pilar Konten Fokus    : {{pilar_konten}}
 - Format Keluaran       : {{format_keluaran}}
 
+Untuk durasi satu minggu, susun tujuh hari berurutan dari Senin sampai Minggu, satu sampai dua konten tiap hari, dan sebutkan nama harinya. Cantumkan tanggal hanya bila tanggalnya memang diberikan.
 Untuk durasi satu bulan, tampilkan kegiatan harian teratur sekitar tiga sampai empat konten per minggu, berurutan dari awal hingga akhir bulan.
 Untuk durasi satu tahun, susun dua belas bulan berturut-turut, tiap bulan empat sampai enam kegiatan utama lengkap dengan PIC, format visual, dan target capaian.$pola$,
 $kolom$[
  {"kunci":"topik","label":"Fokus Tema / Kampanye","jenis":"text","wajib":true,"contoh":"Kampanye Cegah Stunting dan Gizi Anak"},
  {"kunci":"kanal","label":"Kanal Distribusi","jenis":"select","pilihan":["Semua Kanal (Omnichannel)","Instagram","TikTok","Facebook","YouTube","Website RSPUR","WhatsApp Broadcast"],"bawaan":"Semua Kanal (Omnichannel)"},
- {"kunci":"durasi","label":"Durasi Kalender","jenis":"select","pilihan":["1 Bulan (jadwal harian)","12 Bulan (rencana tahunan)"],"bawaan":"1 Bulan (jadwal harian)"},
+ {"kunci":"durasi","label":"Durasi Kalender","jenis":"select","pilihan":["1 Minggu (jadwal harian)","1 Bulan (jadwal harian)","12 Bulan (rencana tahunan)"],"bawaan":"1 Bulan (jadwal harian)"},
  {"kunci":"bulan_mulai","label":"Bulan Mulai","jenis":"select","pilihan":["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"],"bawaan":"September"},
  {"kunci":"tahun","label":"Tahun","jenis":"number","bawaan":"2026"},
  {"kunci":"pilar_konten","label":"Pilar Konten","jenis":"multiselect","pilihan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas","Testimoni & Kisah Pasien","Promo Layanan & Paket Pemeriksaan","Hari Kesehatan Nasional & Internasional","Hari Besar Nasional & Keagamaan","Kegiatan Sosial & CSR","Informasi Layanan & Jadwal Praktik"],"bawaan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas"]},
