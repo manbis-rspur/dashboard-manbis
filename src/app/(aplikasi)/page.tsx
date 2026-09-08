@@ -24,10 +24,15 @@ export default async function Beranda() {
     .select("id", { count: "exact", head: true })
     .eq("tahun", tahun);
 
+  // Diurutkan menurut nomornya, bukan menurut waktu pengambilan.
+  // "Nomor terakhir" berarti nomor tertinggi — dan waktu pengambilan
+  // tidak bisa diandalkan untuk itu: nomor pindahan dari buku lama
+  // memakai tanggal suratnya, yang sebagian keliru di sumbernya.
   const { data: terakhir } = await supabase
     .from("nomor")
     .select("nomor_lengkap, perihal, pengguna(nama)")
-    .order("diambil_pada", { ascending: false })
+    .order("tahun", { ascending: false })
+    .order("urutan", { ascending: false })
     .limit(1)
     .maybeSingle();
 
