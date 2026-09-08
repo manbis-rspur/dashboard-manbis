@@ -91,17 +91,24 @@ export default async function HalamanCetak({ params }: PageProps<"/komplain/[id]
       <PicuCetak />
 
       <div className="lembar">
-        <header className="kop">
-          {identitas.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={identitas.logoUrl} alt="" className="kop-logo" />
-          ) : (
-            <div className="kop-logo" />
-          )}
-          {identitas.alamatKop && (
-            <p className="kop-alamat">{identitas.alamatKop}</p>
-          )}
-        </header>
+        {identitas.kopUrl ? (
+          // Kop resmi berupa gambar dipakai apa adanya — paling tepat,
+          // karena tidak perlu disusun ulang dari potongan.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={identitas.kopUrl} alt="" className="kop-gambar" />
+        ) : (
+          <header className="kop">
+            {identitas.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={identitas.logoUrl} alt="" className="kop-logo" />
+            ) : (
+              <div className="kop-logo" />
+            )}
+            {identitas.alamatKop && (
+              <p className="kop-alamat">{identitas.alamatKop}</p>
+            )}
+          </header>
+        )}
 
         <h1 className="judul">FORMULIR LAPORAN PENANGANAN KOMPLAIN</h1>
 

@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { kecilkanLogo } from "@/lib/kecilkan-logo";
+import { kecilkanLogo, kecilkanKop } from "@/lib/kecilkan-logo";
 import { warnaDariGambar, jadikanTerbaca, kontrasDenganPutih } from "@/lib/warna";
-import { simpanIdentitas } from "@/lib/identitas-actions";
+import { simpanIdentitas, hapusKop } from "@/lib/identitas-actions";
 
 const MAKS_ASLI = 10 * 1024 * 1024;
 const BAWAAN = "#1b6156";
@@ -14,13 +14,17 @@ export function FormIdentitas({
   logoAwal,
   warnaAwal,
   alamatAwal,
+  kopAwal,
 }: {
   logoAwal: string | null;
   warnaAwal: string | null;
   alamatAwal: string | null;
+  kopAwal: string | null;
 }) {
   const router = useRouter();
   const berkasRef = useRef<HTMLInputElement>(null);
+  const kopRef = useRef<HTMLInputElement>(null);
+  const [kop, setKop] = useState(kopAwal);
 
   const [logo, setLogo] = useState(logoAwal);
   const [warna, setWarna] = useState(warnaAwal ?? BAWAAN);
@@ -97,6 +101,65 @@ export function FormIdentitas({
     const h = await simpanIdentitas(logo, pilihan);
     if (h.ok) {
       setPesan("Warna aplikasi sudah diganti.");
+      router.refresh();
+    } else {
+      setGalat(h.pesan);
+    }
+    setSibuk(false);
+  }
+
+  async function pilihKop(berkas: File) {
+    setGalat(null);
+    setPesan(null);
+
+    if (berkas.size > 10 * 1024 * 1024) {
+      setGalat("Berkasnya terlalu besar. Maksimal 10 MB.");
+      return;
+    }
+
+    setSibuk(true);
+    try {
+      const kecil = await kecilkanKop(berkas);
+      const db = createClient();
+      const jalur = `kop/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+
+      const { error } = await db.storage.from("publik").upload(jalur, kecil, {
+        contentType: "image/png",
+        upsert: false,
+      });
+
+      if (error) {
+        setGalat("Gagal mengunggah: " + error.message);
+        return;
+      }
+
+      const { data } = db.storage.from("publik").getPublicUrl(jalur);
+      const h = await simpanIdentitas(logo, warna, alamat, data.publicUrl);
+
+      if (h.ok) {
+        setKop(data.publicUrl);
+        setPesan("Kop surat tersimpan. Dokumen cetak sekarang memakai kop ini.");
+        router.refresh();
+      } else {
+        setGalat(h.pesan);
+      }
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : "Gagal mengolah gambar.");
+    } finally {
+      setSibuk(false);
+      if (kopRef.current) kopRef.current.value = "";
+    }
+  }
+
+  async function buangKop() {
+    setSibuk(true);
+    setGalat(null);
+    setPesan(null);
+
+    const h = await hapusKop();
+    if (h.ok) {
+      setKop(null);
+      setPesan(h.pesan);
       router.refresh();
     } else {
       setGalat(h.pesan);
@@ -218,12 +281,73 @@ export function FormIdentitas({
       <section className="flex flex-col gap-4 border-t border-garis pt-8">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+            Kop surat untuk dokumen cetak
+          </h2>
+          <p className="mt-1 text-sm text-tinta-2">
+            Kalau kop surat resmi sudah ada dalam bentuk gambar, unggah di sini
+            dan dipakai apa adanya — paling tepat, karena tidak perlu disusun
+            ulang. Selama kop ini terpasang, logo dan alamat di bawah tidak
+            dipakai pada dokumen cetak.
+          </p>
+        </div>
+
+        <div className="rounded border border-garis bg-permukaan p-3">
+          {kop ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={kop} alt="Kop surat" className="w-full" />
+          ) : (
+            <p className="py-6 text-center text-sm text-tinta-3">
+              Belum ada kop surat
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={sibuk}
+            onClick={() => kopRef.current?.click()}
+            className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {sibuk ? "Memproses…" : kop ? "Ganti kop surat" : "Unggah kop surat"}
+          </button>
+          {kop && (
+            <button
+              type="button"
+              disabled={sibuk}
+              onClick={buangKop}
+              className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
+            >
+              Hapus kop
+            </button>
+          )}
+        </div>
+
+        <p className="text-xs text-tinta-3">
+          PNG selebar kop surat aslinya. Maksimal 10 MB.
+        </p>
+
+        <input
+          ref={kopRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const b = e.target.files?.[0];
+            if (b) pilihKop(b);
+          }}
+        />
+      </section>
+
+      <section className="flex flex-col gap-4 border-t border-garis pt-8">
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
             Alamat pada kop dokumen
           </h2>
           <p className="mt-1 text-sm text-tinta-2">
-            Muncul di kanan atas formulir komplain yang dicetak, di seberang
-            logo. Tulis apa adanya seperti pada kop surat resmi — termasuk
-            telepon dan email. Pindah baris akan ikut tercetak.
+            Hanya dipakai kalau kop surat di atas belum diunggah. Muncul di
+            kanan atas dokumen cetak, di seberang logo. Pindah baris akan ikut
+            tercetak.
           </p>
         </div>
 

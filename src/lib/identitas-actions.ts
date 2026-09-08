@@ -23,12 +23,14 @@ export async function simpanIdentitas(
   logoUrl: string | null,
   warna: string | null,
   alamatKop?: string | null,
+  kopUrl?: string | null,
 ): Promise<Balasan> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("simpan_identitas", {
     p_logo_url: logoUrl ?? "",
     p_warna: warna ?? "",
     p_alamat: alamatKop ?? "",
+    p_kop_url: kopUrl ?? "",
   });
 
   if (error) return { ok: false, pesan: `Gagal disimpan: ${error.message}` };
@@ -39,4 +41,16 @@ export async function simpanIdentitas(
 
   revalidatePath("/", "layout");
   return { ok: true, pesan: "Identitas aplikasi sudah diperbarui." };
+}
+
+/** Membuang kop surat, kembali memakai logo dan alamat. */
+export async function hapusKop(): Promise<Balasan> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("hapus_kop");
+
+  if (error) return { ok: false, pesan: `Gagal dihapus: ${error.message}` };
+
+  await buangBerkas(data as string | null);
+  revalidatePath("/", "layout");
+  return { ok: true, pesan: "Kop surat dihapus. Dokumen kembali memakai logo dan alamat." };
 }

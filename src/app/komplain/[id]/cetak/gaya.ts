@@ -25,6 +25,11 @@ export const gayaCetak = `
     box-sizing: border-box;
   }
 
+  .kop-gambar {
+    display: block; width: 100%; height: auto;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
   .kop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10mm; }
   .kop-logo { height: 20mm; width: auto; max-width: 70mm; object-fit: contain; }
   .kop-alamat { margin: 0; text-align: right; font-size: 7pt; line-height: 1.45; white-space: pre-line; }

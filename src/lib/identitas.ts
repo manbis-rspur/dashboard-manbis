@@ -6,6 +6,8 @@ export type Identitas = {
   namaUnit: string;
   /** Alamat dan kontak RS pada kop dokumen cetak. */
   alamatKop: string | null;
+  /** Kop surat resmi berupa gambar. Kalau ada, ini yang dipakai. */
+  kopUrl: string | null;
 };
 
 /**
@@ -19,7 +21,7 @@ export async function bacaIdentitas(): Promise<Identitas> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("pengaturan_sistem")
-    .select("logo_url, warna_utama, nama_unit, alamat_kop")
+    .select("logo_url, warna_utama, nama_unit, alamat_kop, kop_url")
     .eq("id", 1)
     .maybeSingle();
 
@@ -28,5 +30,6 @@ export async function bacaIdentitas(): Promise<Identitas> {
     warnaUtama: data?.warna_utama ?? null,
     namaUnit: data?.nama_unit ?? "Manajemen Bisnis",
     alamatKop: data?.alamat_kop ?? null,
+    kopUrl: data?.kop_url ?? null,
   };
 }

@@ -17,6 +17,7 @@ export default async function HalamanIdentitas() {
         logoAwal={identitas.logoUrl}
         warnaAwal={identitas.warnaUtama}
         alamatAwal={identitas.alamatKop}
+        kopAwal={identitas.kopUrl}
       />
     </div>
   );

@@ -8,14 +8,28 @@
 
 const SISI_MAKS = 512;
 
-export async function kecilkanLogo(berkas: File): Promise<File> {
+/**
+ * Kop surat butuh ukuran jauh lebih besar daripada logo: ia dicetak
+ * selebar kertas A4, dan gambar 512 piksel akan terlihat pecah.
+ * 1600 piksel setara sekitar 200 titik per inci pada lebar A4.
+ */
+const SISI_MAKS_KOP = 1600;
+
+export async function kecilkanKop(berkas: File): Promise<File> {
+  return kecilkanLogo(berkas, SISI_MAKS_KOP);
+}
+
+export async function kecilkanLogo(
+  berkas: File,
+  sisiMaks: number = SISI_MAKS,
+): Promise<File> {
   if (!berkas.type.startsWith("image/")) {
     throw new Error("Berkasnya harus berupa gambar.");
   }
 
   const gambar = await createImageBitmap(berkas, { imageOrientation: "from-image" });
 
-  const skala = Math.min(1, SISI_MAKS / Math.max(gambar.width, gambar.height));
+  const skala = Math.min(1, sisiMaks / Math.max(gambar.width, gambar.height));
   const lebar = Math.round(gambar.width * skala);
   const tinggi = Math.round(gambar.height * skala);
 
