@@ -1,8 +1,8 @@
-import { wajibAkses } from "@/lib/akses";
+import { wajibHumasPenuh } from "@/lib/akses";
 import { PerakitModul } from "../perakit-modul";
 
 export default async function HalamanModulBaru() {
-  await wajibAkses("humas");
+  await wajibHumasPenuh();
 
   return (
     <div className="max-w-3xl">

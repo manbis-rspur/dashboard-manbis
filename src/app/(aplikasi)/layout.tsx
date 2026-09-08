@@ -34,7 +34,8 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   // Komplain memuat data pasien, jadi menunya hanya muncul bagi yang
   // memang diberi izin — bukan disembunyikan lewat peran saja.
   const bolehKomplain = await bolehAkses("komplain");
-  const bolehHumas = await bolehAkses("humas");
+  const bolehHumas =
+    (await bolehAkses("humas")) || (await bolehAkses("humas_pelanggan"));
 
   const menu = [
     ...MENU,

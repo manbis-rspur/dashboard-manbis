@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { wajibAkses } from "@/lib/akses";
+import { wajibHumas } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { hapusRiwayat } from "@/lib/humas-actions";
 import { TampilHasil } from "@/components/tampil-hasil";
@@ -15,7 +15,7 @@ const waktu = new Intl.DateTimeFormat("id-ID", {
 export default async function HalamanRiwayat({
   searchParams,
 }: PageProps<"/humas/riwayat">) {
-  await wajibAkses("humas");
+  await wajibHumas();
   const q = await searchParams;
   const dibuka = typeof q.dokumen === "string" ? Number(q.dokumen) : null;
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
-import { bolehAkses } from "@/lib/akses";
+import { bolehAkses, izinHumas } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { susunDenganAI } from "@/lib/ai";
 import { bacaKolom, kunciLain, susunPerintah } from "@/lib/modul-ai";
@@ -24,7 +24,7 @@ export async function jalankanModul(
   formData: FormData,
 ): Promise<HasilSusun> {
   const pengguna = await getPenggunaAktif();
-  if (!pengguna || !(await bolehAkses("humas"))) {
+  if (!pengguna || (await izinHumas()) === "tidak") {
     return {
       pesan: "Anda tidak berhak memakai modul ini.",
       hasil: null,

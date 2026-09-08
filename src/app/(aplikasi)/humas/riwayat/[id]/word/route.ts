@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { bolehAkses } from "@/lib/akses";
+import { izinHumas } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { jadikanWord } from "@/lib/markdown-docx";
 
@@ -13,7 +13,7 @@ export async function GET(
   _permintaan: Request,
   { params }: RouteContext<"/humas/riwayat/[id]/word">,
 ) {
-  if (!(await bolehAkses("humas"))) {
+  if ((await izinHumas()) === "tidak") {
     return new NextResponse("Tidak berhak membuka dokumen ini.", { status: 403 });
   }
 

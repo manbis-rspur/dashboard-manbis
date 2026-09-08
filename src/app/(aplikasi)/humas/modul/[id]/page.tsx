@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { wajibAkses } from "@/lib/akses";
+import { wajibHumasPenuh } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { bacaKolom } from "@/lib/modul-ai";
 import { PerakitModul } from "../perakit-modul";
@@ -7,7 +7,7 @@ import { PerakitModul } from "../perakit-modul";
 export default async function HalamanSuntingModul({
   params,
 }: PageProps<"/humas/modul/[id]">) {
-  await wajibAkses("humas");
+  await wajibHumasPenuh();
   const { id } = await params;
 
   const supabase = await createClient();

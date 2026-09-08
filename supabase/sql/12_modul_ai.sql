@@ -1,7 +1,7 @@
 -- ============================================================
--- 12. MODUL BANTUAN AI — HUMAS & MARKETING
+-- 12. MODUL BANTUAN AI — HUMAS & DIGITAL MARKETING
 --
--- Pindahan dari aplikasi "Sistem Informasi Humas & Marketing
+-- Pindahan dari aplikasi "Sistem Informasi Humas & Digital Marketing
 -- RSPUR" yang sebelumnya berdiri sendiri. Empat hal sengaja
 -- diubah, bukan disalin apa adanya:
 --
