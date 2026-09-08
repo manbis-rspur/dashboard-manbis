@@ -11,7 +11,7 @@ export type HasilSusun = { pesan: string | null; hasil: string | null; judul: st
 
 /**
  * Menjalankan satu modul: menyusun perintah dari isian formulir,
- * mengirimnya ke Claude, lalu menyimpan hasilnya sebagai riwayat
+ * mengirimnya ke Gemini, lalu menyimpan hasilnya sebagai riwayat
  * milik tim.
  */
 export async function jalankanModul(
@@ -59,7 +59,7 @@ export async function jalankanModul(
       modul.instruksi_sistem,
     );
   } catch (galat) {
-    const pesan = galat instanceof Error ? galat.message : "Gagal menghubungi Claude.";
+    const pesan = galat instanceof Error ? galat.message : "Gagal menghubungi Gemini.";
     return { pesan, hasil: null, judul: "" };
   }
 

@@ -1,106 +1,89 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
 
 /**
- * Memanggil Claude untuk menyusun dokumen.
+ * Memanggil Gemini untuk menyusun dokumen.
  *
  * Kunci API hanya ada di server dan tidak pernah sampai ke
  * peramban. Pemeriksaan siapa yang berhak memakai dilakukan oleh
- * pemanggil — di aplikasi asal, alamat serupa terbuka untuk umum,
+ * pemanggil — di aplikasi lama, alamat serupa terbuka untuk umum,
  * sehingga siapa pun yang menemukannya bisa menghabiskan kuota
- * rumah sakit.
+ * Gemini rumah sakit.
  */
 
-const MODEL = "claude-opus-5";
+/** Dicoba berurutan; yang pertama berhasil dipakai. */
+const MODEL = ["gemini-flash-latest", "gemini-2.5-flash"];
 
-/**
- * Dokumen yang diminta modul ini bisa panjang — kalender konten
- * setahun penuh berisi puluhan baris tabel. Karena itu jawabannya
- * dialirkan sedikit demi sedikit; permintaan sepanjang itu kalau
- * ditunggu sekaligus akan kehabisan waktu di tengah jalan.
- */
-const MAKS_KELUARAN = 32000;
+const ALAMAT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export async function susunDenganAI(
   perintah: string,
   instruksiSistem: string,
+  suhu = 0.7,
 ): Promise<string> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const kunci = process.env.GEMINI_API_KEY;
+
+  if (!kunci) {
     throw new Error(
-      "Kunci Claude belum dipasang. Isi ANTHROPIC_API_KEY di .env.local, lalu jalankan ulang aplikasinya.",
+      "Kunci Gemini belum dipasang. Isi GEMINI_API_KEY di .env.local, lalu jalankan ulang aplikasinya.",
     );
   }
 
-  const claude = new Anthropic();
+  let galatTerakhir = "";
 
-  try {
-    const aliran = claude.beta.messages.stream({
-      model: MODEL,
-      max_tokens: MAKS_KELUARAN,
-      system: instruksiSistem,
-      messages: [{ role: "user", content: perintah }],
-      thinking: { type: "adaptive" },
-      output_config: { effort: "high" },
-      // Kalau permintaan ditolak penyaring keselamatan, permintaan
-      // yang sama diulang pada model cadangan dalam satu panggilan
-      // — supaya petugas tidak berhadapan dengan layar gagal untuk
-      // sesuatu yang sebenarnya masih bisa dikerjakan.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-    });
+  for (const model of MODEL) {
+    try {
+      const jawaban = await fetch(`${ALAMAT}/${model}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": kunci },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: perintah }] }],
+          systemInstruction: { parts: [{ text: instruksiSistem }] },
+          generationConfig: { temperature: suhu },
+        }),
+      });
 
-    const jawaban = await aliran.finalMessage();
+      if (!jawaban.ok) {
+        const isi = await jawaban.text();
+        galatTerakhir = terjemahkanGalat(jawaban.status, isi);
+        continue;
+      }
 
-    if (jawaban.stop_reason === "refusal") {
-      throw new Error(
-        "Permintaan ini ditolak penyaring keselamatan Claude. Coba susun ulang kalimatnya, " +
-          "atau kurangi keterangan yang menyebut identitas orang.",
-      );
+      const data = await jawaban.json();
+      const teks: string =
+        data?.candidates?.[0]?.content?.parts
+          ?.map((p: { text?: string }) => p.text ?? "")
+          .join("") ?? "";
+
+      if (teks.trim()) return teks;
+
+      // Jawaban kosong biasanya berarti permintaannya tertahan
+      // penyaring keamanan Gemini, bukan gangguan jaringan.
+      galatTerakhir =
+        "Gemini tidak mengembalikan tulisan apa pun. Isian mungkin tertahan penyaring keamanannya — coba susun ulang kalimatnya.";
+    } catch (galat) {
+      galatTerakhir = galat instanceof Error ? galat.message : String(galat);
     }
-
-    const teks = jawaban.content
-      .filter((bagian) => bagian.type === "text")
-      .map((bagian) => bagian.text)
-      .join("");
-
-    if (!teks.trim()) {
-      throw new Error("Claude tidak mengembalikan tulisan apa pun. Coba jalankan lagi.");
-    }
-
-    return teks;
-  } catch (galat) {
-    throw new Error(terjemahkanGalat(galat));
   }
+
+  throw new Error(galatTerakhir || "Gagal menghubungi Gemini.");
 }
 
-/**
- * Menerjemahkan galat jadi kalimat yang bisa ditindaklanjuti
- * petugas — bukan pesan mentah berbahasa Inggris.
- */
-function terjemahkanGalat(galat: unknown): string {
-  if (galat instanceof Anthropic.AuthenticationError) {
-    return "Kunci Claude ditolak. Periksa ANTHROPIC_API_KEY di .env.local.";
+/** Menerjemahkan galat Gemini jadi kalimat yang bisa ditindaklanjuti. */
+function terjemahkanGalat(status: number, isi: string) {
+  if (status === 401 || status === 403 || isi.includes("API_KEY_INVALID")) {
+    return (
+      "Kunci Gemini ditolak. Pastikan kuncinya masih berlaku dan layanan " +
+      "Generative Language API sudah diaktifkan untuk kunci itu."
+    );
   }
 
-  if (galat instanceof Anthropic.PermissionDeniedError) {
-    return "Kunci Claude tidak berhak memakai model ini. Periksa pengaturan kuncinya di Console.";
+  if (status === 429 || isi.includes("RESOURCE_EXHAUSTED")) {
+    return "Kuota Gemini sedang penuh. Tunggu beberapa saat lalu coba lagi.";
   }
 
-  if (galat instanceof Anthropic.RateLimitError) {
-    return "Permintaan sedang terlalu padat. Tunggu sebentar lalu coba lagi.";
+  if (status >= 500) {
+    return "Layanan Gemini sedang bermasalah. Coba lagi beberapa saat lagi.";
   }
 
-  if (galat instanceof Anthropic.BadRequestError) {
-    return `Permintaan ditolak: ${galat.message}`;
-  }
-
-  if (galat instanceof Anthropic.APIConnectionError) {
-    return "Tidak bisa menghubungi Claude. Periksa sambungan internet komputer ini.";
-  }
-
-  if (galat instanceof Anthropic.APIError) {
-    return `Claude mengembalikan galat ${galat.status ?? ""}: ${galat.message}`.trim();
-  }
-
-  return galat instanceof Error ? galat.message : "Gagal menghubungi Claude.";
+  return `Gemini menolak permintaan (kode ${status}).`;
 }
