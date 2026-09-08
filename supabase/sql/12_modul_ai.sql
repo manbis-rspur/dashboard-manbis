@@ -246,7 +246,7 @@ $kolom$[
  {"kunci":"durasi","label":"Durasi Kalender","jenis":"select","pilihan":["1 Minggu (jadwal harian)","1 Bulan (jadwal harian)","12 Bulan (rencana tahunan)"],"bawaan":"1 Bulan (jadwal harian)"},
  {"kunci":"bulan_mulai","label":"Bulan Mulai","jenis":"select","pilihan":["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"],"bawaan":"September"},
  {"kunci":"tahun","label":"Tahun","jenis":"number","bawaan":"2026"},
- {"kunci":"pilar_konten","label":"Pilar Konten","jenis":"multiselect","pilihan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas","Testimoni & Kisah Pasien","Promo Layanan & Paket Pemeriksaan","Hari Kesehatan Nasional & Internasional","Hari Besar Nasional & Keagamaan","Kegiatan Sosial & CSR","Informasi Layanan & Jadwal Praktik"],"bawaan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas"]},
+ {"kunci":"pilar_konten","label":"Pilar Konten","jenis":"multiselect","boleh_lain":true,"pilihan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas","Testimoni & Kisah Pasien","Promo Layanan & Paket Pemeriksaan","Hari Kesehatan Nasional & Internasional","Hari Besar Nasional & Keagamaan","Kegiatan Sosial & CSR","Informasi Layanan & Jadwal Praktik"],"bawaan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas"]},
  {"kunci":"format_keluaran","label":"Format Keluaran","jenis":"select","pilihan":["Tabel","Daftar"],"bawaan":"Tabel"}
 ]$kolom$::jsonb),
 
@@ -291,8 +291,8 @@ $kolom$[
  {"kunci":"jenis_event","label":"Jenis Acara","jenis":"select","pilihan":["Bakti Sosial & Pemeriksaan Gratis","Seminar / Talkshow Kesehatan","Senam & Gaya Hidup Sehat","Donor Darah","Peringatan Hari Kesehatan","Peresmian Layanan Baru"],"bawaan":"Bakti Sosial & Pemeriksaan Gratis"},
  {"kunci":"jumlah_peserta","label":"Perkiraan Jumlah Peserta","jenis":"number","bawaan":"200"},
  {"kunci":"durasi","label":"Durasi Acara","jenis":"text","bawaan":"1 hari (07.00 - 12.00)"},
- {"kunci":"target_peserta","label":"Target Peserta","jenis":"multiselect","pilihan":["Masyarakat Umum","Lansia","Ibu Hamil & Menyusui","Anak & Remaja","Karyawan Perusahaan Mitra","Tenaga Kesehatan"],"bawaan":["Masyarakat Umum"]},
- {"kunci":"layanan_medis","label":"Layanan Medis yang Disediakan","jenis":"multiselect","pilihan":["Pemeriksaan Tekanan Darah","Gula Darah & Kolesterol","Pemeriksaan Gigi","Konsultasi Dokter Umum","Konsultasi Dokter Spesialis","Skrining Gizi & Tumbuh Kembang","Donor Darah"],"bawaan":["Pemeriksaan Tekanan Darah","Gula Darah & Kolesterol"]},
+ {"kunci":"target_peserta","label":"Target Peserta","jenis":"multiselect","boleh_lain":true,"pilihan":["Masyarakat Umum","Lansia","Ibu Hamil & Menyusui","Anak & Remaja","Karyawan Perusahaan Mitra","Tenaga Kesehatan"],"bawaan":["Masyarakat Umum"]},
+ {"kunci":"layanan_medis","label":"Layanan Medis yang Disediakan","jenis":"multiselect","boleh_lain":true,"pilihan":["Pemeriksaan Tekanan Darah","Gula Darah & Kolesterol","Pemeriksaan Gigi","Konsultasi Dokter Umum","Konsultasi Dokter Spesialis","Skrining Gizi & Tumbuh Kembang","Donor Darah"],"bawaan":["Pemeriksaan Tekanan Darah","Gula Darah & Kolesterol"]},
  {"kunci":"tujuan","label":"Tujuan Utama","jenis":"textarea","bawaan":"Edukasi dan skrining kesehatan masyarakat"},
  {"kunci":"jumlah_tim","label":"Jumlah Panitia","jenis":"number","bawaan":"15"},
  {"kunci":"anggaran","label":"Indikasi Anggaran","jenis":"text","contoh":"Sekitar 15 juta rupiah"},

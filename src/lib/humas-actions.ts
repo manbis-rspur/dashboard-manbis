@@ -5,7 +5,7 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { susunDenganAI } from "@/lib/ai";
-import { bacaKolom, susunPerintah } from "@/lib/modul-ai";
+import { bacaKolom, kunciLain, susunPerintah } from "@/lib/modul-ai";
 
 export type HasilSusun = {
   pesan: string | null;
@@ -51,6 +51,17 @@ export async function jalankanModul(
   for (const k of kolom) {
     if (k.jenis === "multiselect") {
       const semua = formData.getAll(k.kunci).map(String).filter(Boolean);
+
+      // Isian bebas digabung ke pilihan yang dicentang, dipisah
+      // koma seperti yang lain — dari sisi perintah keduanya tidak
+      // dibedakan, dan memang tidak perlu dibedakan.
+      if (k.boleh_lain) {
+        const lain = String(formData.get(kunciLain(k.kunci)) ?? "").trim();
+        for (const bagian of lain.split(",").map((b) => b.trim()).filter(Boolean)) {
+          if (!semua.includes(bagian)) semua.push(bagian);
+        }
+      }
+
       isian[k.kunci] = semua.join(", ");
     } else if (k.jenis === "checkbox") {
       isian[k.kunci] = formData.get(k.kunci) ? "Ya" : "Tidak";

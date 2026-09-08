@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { jalankanModul, type HasilSusun } from "@/lib/humas-actions";
 import { TampilHasil } from "@/components/tampil-hasil";
-import type { Kolom } from "@/lib/modul-ai";
+import { kunciLain, type Kolom } from "@/lib/modul-ai";
 
 const awal: HasilSusun = { pesan: null, hasil: null, judul: "", riwayatId: null };
 
@@ -48,6 +48,19 @@ function IsianKolom({ k }: { k: Kolom }) {
             </label>
           ))}
         </div>
+
+        {k.boleh_lain && (
+          <label className="mt-1 flex flex-col gap-1">
+            <span className="text-xs text-tinta-3">
+              Lainnya — tulis sendiri, pisahkan dengan koma bila lebih dari satu
+            </span>
+            <input
+              name={kunciLain(k.kunci)}
+              placeholder="Kesehatan jiwa, Program CSR sekolah"
+              className={`${gaya} w-full text-sm`}
+            />
+          </label>
+        )}
       </fieldset>
     );
   }

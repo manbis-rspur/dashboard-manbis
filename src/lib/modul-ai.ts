@@ -23,7 +23,18 @@ export type Kolom = {
   bawaan?: string | string[] | boolean;
   petunjuk?: string;
   contoh?: string;
+  /**
+   * Menyediakan kotak isian bebas di bawah daftar pilihan, untuk
+   * hal yang tidak terpikir saat modulnya dirakit. Isinya digabung
+   * ke pilihan yang dicentang.
+   */
+  boleh_lain?: boolean;
 };
+
+/** Nama isian bebas yang menyertai sebuah kolom pilihan. */
+export function kunciLain(kunci: string) {
+  return `${kunci}__lain`;
+}
 
 export type ModulAI = {
   id: number;

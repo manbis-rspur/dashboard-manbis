@@ -160,6 +160,18 @@ export function PerakitModul({
                 </div>
               </div>
 
+              {k.jenis === "multiselect" && (
+                <label className="mt-3 flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={k.boleh_lain ?? false}
+                    onChange={(e) => ubah(i, { boleh_lain: e.target.checked })}
+                    className="accent-hijau"
+                  />
+                  sediakan kotak isian sendiri di bawah daftar pilihan
+                </label>
+              )}
+
               {(k.jenis === "select" || k.jenis === "multiselect") && (
                 <label className="mt-3 flex flex-col gap-1">
                   <span className="text-xs text-tinta-3">
