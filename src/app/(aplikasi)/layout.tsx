@@ -3,6 +3,7 @@ import Avatar from "@/components/avatar";
 import { keluar } from "@/lib/auth-actions";
 import { wajibLogin } from "@/lib/auth";
 import { bacaIdentitas } from "@/lib/identitas";
+import { gayaWarna } from "@/lib/gaya-warna";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
@@ -32,12 +33,10 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-full flex-col">
-      {/* Warna pilihan Koordinator menimpa warna bawaan. Turunan
-          mudanya dihitung dari warna itu juga, supaya latar lembut
-          dan kotak sorotan ikut menyesuaikan. */}
-      {identitas.warnaUtama && (
-        <style>{`:root{--color-hijau:${identitas.warnaUtama};--color-hijau-muda:color-mix(in srgb, ${identitas.warnaUtama} 14%, white);}`}</style>
-      )}
+      {/* Warna pilihan Koordinator menimpa warna bawaan — termasuk
+          latar, garis, dan warna tulisan, supaya seluruh halaman
+          terasa satu keluarga dengan logonya. */}
+      {identitas.warnaUtama && <style>{gayaWarna(identitas.warnaUtama)}</style>}
 
       <header className="border-b border-garis bg-permukaan">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3">

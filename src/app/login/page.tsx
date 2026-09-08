@@ -1,4 +1,5 @@
 import { bacaIdentitas } from "@/lib/identitas";
+import { gayaWarna } from "@/lib/gaya-warna";
 import { FormMasuk } from "./form-masuk";
 
 export default async function HalamanMasuk({ searchParams }: PageProps<"/login">) {
@@ -8,9 +9,7 @@ export default async function HalamanMasuk({ searchParams }: PageProps<"/login">
 
   return (
     <main className="flex flex-1 items-center justify-center px-5 py-12">
-      {identitas.warnaUtama && (
-        <style>{`:root{--color-hijau:${identitas.warnaUtama};--color-hijau-muda:color-mix(in srgb, ${identitas.warnaUtama} 14%, white);}`}</style>
-      )}
+      {identitas.warnaUtama && <style>{gayaWarna(identitas.warnaUtama)}</style>}
 
       <div className="w-full max-w-sm">
         {identitas.logoUrl && (
