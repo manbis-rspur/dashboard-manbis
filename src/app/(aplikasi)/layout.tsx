@@ -37,12 +37,15 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   const bolehHumas =
     (await bolehAkses("humas")) || (await bolehAkses("humas_pelanggan"));
   const bolehMcu = await bolehAkses("mcu");
+  const bolehPublikasi =
+    (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
 
   const menu = [
     ...MENU,
     ...(bolehKomplain ? [{ href: "/komplain", label: "Komplain" }] : []),
     ...(bolehHumas ? [{ href: "/humas", label: "Humas" }] : []),
     ...(bolehMcu ? [{ href: "/mcu", label: "MCU" }] : []),
+    ...(bolehPublikasi ? [{ href: "/publikasi", label: "Publikasi" }] : []),
     ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),
   ];
 

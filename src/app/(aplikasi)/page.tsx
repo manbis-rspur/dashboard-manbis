@@ -18,6 +18,8 @@ export default async function Beranda() {
   const bolehHumas =
     (await bolehAkses("humas")) || (await bolehAkses("humas_pelanggan"));
   const bolehMcu = await bolehAkses("mcu");
+  const bolehPublikasi =
+    (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
 
   const { count } = await supabase
     .from("nomor")
@@ -102,6 +104,19 @@ export default async function Beranda() {
                 laba dan marginnya.
               </p>
               <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
+            </Link>
+          )}
+
+          {bolehPublikasi && (
+            <Link
+              href="/publikasi"
+              className="flex flex-col gap-2 rounded border border-garis bg-permukaan p-5 transition hover:border-hijau"
+            >
+              <p className="font-medium">Arsip Publikasi</p>
+              <p className="text-sm text-tinta-2">
+                Dokumen hasil kerja Humas dan Digital Marketing yang sudah
+                final.
+              </p>
             </Link>
           )}
 
