@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { bolehAkses } from "@/lib/akses";
 import { getPenggunaAktif } from "@/lib/auth";
@@ -31,7 +32,7 @@ export default async function HalamanPublikasi() {
   const { data } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, berkas_nama, berkas_ukuran, diunggah_pada, pengguna:diunggah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
     )
     .order("diunggah_pada", { ascending: false })
     .limit(200);
@@ -70,23 +71,35 @@ export default async function HalamanPublikasi() {
                 className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded border border-garis bg-permukaan px-4 py-3"
               >
                 <div className="mr-auto min-w-0">
-                  <p className="font-medium">{d.judul}</p>
+                  <Link href={`/publikasi/${d.id}`} className="font-medium hover:underline">
+                    {d.judul}
+                  </Link>
                   <p className="text-xs text-tinta-3">
                     {d.jenis} · {waktu.format(new Date(d.diunggah_pada))}
                     {oleh && ` · ${oleh.nama}`}
                     {d.berkas_ukuran ? ` · ${ukuran(d.berkas_ukuran)}` : ""}
+                    {d.diubah_pada ? " · sudah disunting" : ""}
                   </p>
                   {d.keterangan && (
                     <p className="mt-0.5 text-sm text-tinta-2">{d.keterangan}</p>
                   )}
                 </div>
 
-                <a
-                  href={`/publikasi/${d.id}/berkas`}
-                  className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
-                >
-                  Unduh
-                </a>
+                {d.isi === null ? (
+                  <a
+                    href={`/publikasi/${d.id}/berkas`}
+                    className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                  >
+                    Unduh
+                  </a>
+                ) : (
+                  <Link
+                    href={`/publikasi/${d.id}`}
+                    className="rounded bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                  >
+                    Buka &amp; sunting
+                  </Link>
+                )}
 
                 <form action={hapusPublikasi}>
                   <input type="hidden" name="id" value={d.id} />

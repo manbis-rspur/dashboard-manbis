@@ -101,3 +101,69 @@ export async function hapusPublikasi(formData: FormData) {
   await createAdminClient().storage.from("dokumen").remove([data.berkas_jalur]);
   revalidatePath("/publikasi");
 }
+
+/**
+ * Menyimpan suntingan isi dokumen.
+ *
+ * Tiap penyimpanan dicatat sebagai revisi tersendiri, bukan menimpa
+ * yang lama. Yang disunting adalah dokumen yang akan terbit atas
+ * nama rumah sakit — riwayat koreksinya harus bisa ditelusuri.
+ */
+export async function simpanSuntingan(_s: Hasil, formData: FormData): Promise<Hasil> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+
+  const berhak =
+    (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
+  if (!berhak) return { pesan: "Anda tidak berhak menyunting dokumen ini.", berhasil: null };
+
+  const id = Number(formData.get("id"));
+  const isi = String(formData.get("isi") ?? "");
+  if (isi.trim() === "") return { pesan: "Isi dokumen tidak boleh kosong.", berhasil: null };
+
+  const supabase = await createClient();
+
+  const { data: sebelum } = await supabase
+    .from("publikasi")
+    .select("isi")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!sebelum) return { pesan: "Dokumen tidak ditemukan.", berhasil: null };
+  if (sebelum.isi === isi) {
+    return { pesan: null, berhasil: "Tidak ada yang berubah." };
+  }
+
+  const { data: tersentuh, error } = await supabase
+    .from("publikasi")
+    .update({
+      isi,
+      diubah_oleh: pengguna.id,
+      diubah_pada: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
+  if (!tersentuh || tersentuh.length === 0) {
+    return { pesan: "Tidak ada yang tersimpan — akun Anda mungkin belum berhak.", berhasil: null };
+  }
+
+  const { error: galatRevisi } = await supabase.from("publikasi_revisi").insert({
+    publikasi_id: id,
+    isi,
+    catatan: String(formData.get("catatan") ?? "").trim() || null,
+    oleh: pengguna.id,
+  });
+
+  if (galatRevisi) {
+    return {
+      pesan: `Tersimpan, tetapi revisinya gagal dicatat: ${galatRevisi.message}`,
+      berhasil: null,
+    };
+  }
+
+  revalidatePath("/publikasi");
+  revalidatePath(`/publikasi/${id}`);
+  return { pesan: null, berhasil: "Suntingan tersimpan." };
+}
