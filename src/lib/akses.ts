@@ -23,35 +23,3 @@ export async function wajibAkses(modul: string): Promise<PenggunaAktif> {
   if (!(await bolehAkses(modul))) redirect("/tanpa-akses");
   return pengguna;
 }
-
-/**
- * Seberapa jauh seseorang boleh memakai modul Humas & Digital
- * Marketing.
- *
- *   penuh     — memakai semua modul dan merakit modul baru
- *   pelanggan — hanya modul berkategori Layanan Pelanggan, tetapi
- *               tetap menerima seluruh hasil yang disusun tim
- *   tidak     — tidak berhak sama sekali
- */
-export type IzinHumas = "penuh" | "pelanggan" | "tidak";
-
-/** Kategori yang boleh dibuka pemegang izin terbatas. */
-export const KATEGORI_PELANGGAN = "Layanan Pelanggan";
-
-export async function izinHumas(): Promise<IzinHumas> {
-  if (await bolehAkses("humas")) return "penuh";
-  if (await bolehAkses("humas_pelanggan")) return "pelanggan";
-  return "tidak";
-}
-
-/** Versi yang menutup halaman bagi yang tidak berhak sama sekali. */
-export async function wajibHumas(): Promise<IzinHumas> {
-  const izin = await izinHumas();
-  if (izin === "tidak") redirect("/tanpa-akses");
-  return izin;
-}
-
-/** Halaman yang hanya untuk pemegang izin penuh — merakit modul. */
-export async function wajibHumasPenuh(): Promise<void> {
-  if ((await izinHumas()) !== "penuh") redirect("/tanpa-akses");
-}

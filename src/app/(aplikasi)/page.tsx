@@ -15,8 +15,6 @@ export default async function Beranda() {
   const supabase = await createClient();
   const tahun = new Date().getFullYear();
   const bolehKomplain = await bolehAkses("komplain");
-  const bolehHumas =
-    (await bolehAkses("humas")) || (await bolehAkses("humas_pelanggan"));
   const bolehMcu = await bolehAkses("mcu");
   const bolehPublikasi =
     (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
@@ -74,19 +72,6 @@ export default async function Beranda() {
               <p className="font-medium">Komplain Pasien</p>
               <p className="text-sm text-tinta-2">
                 Pencatatan dan tindak lanjut keluhan pelanggan RSPUR.
-              </p>
-              <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
-            </Link>
-          )}
-
-          {bolehHumas && (
-            <Link
-              href="/humas"
-              className="flex flex-col gap-2 rounded border border-garis bg-permukaan p-5 transition hover:border-hijau"
-            >
-              <p className="font-medium">Layanan Pelanggan</p>
-              <p className="text-sm text-tinta-2">
-                Bantuan menyusun balasan ulasan dan komplain pasien.
               </p>
               <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
             </Link>
