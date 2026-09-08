@@ -5,6 +5,7 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Penyunting } from "./penyunting";
 import { FormTautan } from "./form-tautan";
+import { FormRevisi } from "./form-revisi";
 
 const waktu = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
@@ -36,7 +37,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
 
   const { data: revisi } = await supabase
     .from("publikasi_revisi")
-    .select("id, catatan, pada, pengguna:oleh(nama)")
+    .select("id, versi, catatan, pada, berkas_nama, berkas_jalur, pengguna:oleh(nama)")
     .eq("publikasi_id", Number(id))
     .order("pada", { ascending: false });
 
@@ -74,12 +75,14 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
             href={`/publikasi/${d.id}/berkas`}
             className="mt-4 inline-block rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
-            Unduh berkas
+            Unduh versi terakhir
           </a>
         </div>
       ) : (
         <Penyunting id={d.id} isiAwal={d.isi} />
       )}
+
+      {d.isi === null && <FormRevisi id={d.id} />}
 
       <FormTautan id={d.id} tautanAwal={d.tautan_docs} />
 
@@ -92,14 +95,26 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
             {(revisi ?? []).map((r) => {
               const oleh = Array.isArray(r.pengguna) ? r.pengguna[0] : r.pengguna;
               return (
-                <li key={r.id} className="border-l-2 border-garis pl-3">
-                  <p className="text-sm">
-                    {r.catatan ?? "Disunting"}
-                  </p>
-                  <p className="text-xs text-tinta-3">
-                    {waktu.format(new Date(r.pada))}
-                    {oleh && ` · ${oleh.nama}`}
-                  </p>
+                <li key={r.id} className="flex flex-wrap items-baseline gap-x-3 border-l-2 border-garis pl-3">
+                  <div className="mr-auto">
+                    <p className="text-sm">
+                      <span className="font-medium">Versi {r.versi}</span>
+                      {r.catatan ? ` — ${r.catatan}` : ""}
+                    </p>
+                    <p className="text-xs text-tinta-3">
+                      {waktu.format(new Date(r.pada))}
+                      {oleh && ` · ${oleh.nama}`}
+                      {r.berkas_nama ? ` · ${r.berkas_nama}` : ""}
+                    </p>
+                  </div>
+                  {r.berkas_jalur && (
+                    <a
+                      href={`/publikasi/${d.id}/revisi/${r.id}/berkas`}
+                      className="text-xs text-tinta-3 hover:underline"
+                    >
+                      unduh versi ini
+                    </a>
+                  )}
                 </li>
               );
             })}

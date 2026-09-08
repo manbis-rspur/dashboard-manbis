@@ -212,3 +212,96 @@ export async function simpanTautanDocs(_s: Hasil, formData: FormData): Promise<H
     berhasil: tautan === "" ? "Tautan dihapus." : "Tautan Google Docs tersimpan.",
   };
 }
+
+/**
+ * Mengunggah revisi berupa berkas.
+ *
+ * Berkas lama TIDAK ditimpa: yang baru disimpan sebagai versi
+ * tersendiri, dan barisan dokumen diarahkan ke versi terakhir.
+ * Dengan begitu naskah asli tetap bisa dibuka, dan terlihat apa
+ * yang berubah di tiap langkah.
+ */
+export async function unggahRevisi(_s: Hasil, formData: FormData): Promise<Hasil> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+
+  const berhak = (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
+  if (!berhak) return { pesan: "Anda tidak berhak mengunggah revisi.", berhasil: null };
+
+  const id = Number(formData.get("id"));
+  const berkas = formData.get("berkas");
+
+  if (!(berkas instanceof File) || berkas.size === 0) {
+    return { pesan: "Pilih dulu berkas revisinya.", berhasil: null };
+  }
+
+  const nama = berkas.name.toLowerCase();
+  if (!DITERIMA.some((akhiran) => nama.endsWith(akhiran))) {
+    return {
+      pesan: `Jenis berkas belum didukung. Yang diterima: ${DITERIMA.join(", ")}.`,
+      berhasil: null,
+    };
+  }
+
+  if (berkas.size > MAKS) {
+    return { pesan: "Berkasnya terlalu besar. Maksimal 20 MB.", berhasil: null };
+  }
+
+  const db = createAdminClient();
+  const jalur = `publikasi/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${berkas.name}`;
+
+  const { error: galatUnggah } = await db.storage
+    .from("dokumen")
+    .upload(jalur, await berkas.arrayBuffer(), {
+      contentType: berkas.type || "application/octet-stream",
+      upsert: false,
+    });
+
+  if (galatUnggah) {
+    return { pesan: `Gagal mengunggah: ${galatUnggah.message}`, berhasil: null };
+  }
+
+  const supabase = await createClient();
+
+  const { data: revisi, error: galatRevisi } = await supabase
+    .from("publikasi_revisi")
+    .insert({
+      publikasi_id: id,
+      berkas_jalur: jalur,
+      berkas_nama: berkas.name,
+      berkas_ukuran: berkas.size,
+      catatan: String(formData.get("catatan") ?? "").trim() || null,
+      oleh: pengguna.id,
+    })
+    .select("versi")
+    .single();
+
+  if (galatRevisi) {
+    await db.storage.from("dokumen").remove([jalur]);
+    return { pesan: `Revisi gagal dicatat: ${galatRevisi.message}`, berhasil: null };
+  }
+
+  // Barisan dokumen diarahkan ke versi terakhir, supaya yang
+  // terunduh dari daftar selalu yang terbaru.
+  const { error } = await supabase
+    .from("publikasi")
+    .update({
+      berkas_jalur: jalur,
+      berkas_nama: berkas.name,
+      berkas_ukuran: berkas.size,
+      diubah_oleh: pengguna.id,
+      diubah_pada: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    return {
+      pesan: `Revisi tersimpan sebagai versi ${revisi.versi}, tetapi dokumen utamanya gagal diperbarui: ${error.message}`,
+      berhasil: null,
+    };
+  }
+
+  revalidatePath("/publikasi");
+  revalidatePath(`/publikasi/${id}`);
+  return { pesan: null, berhasil: `Tersimpan sebagai versi ${revisi.versi}.` };
+}
