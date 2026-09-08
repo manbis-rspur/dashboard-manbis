@@ -17,6 +17,7 @@ export default async function Beranda() {
   const bolehKomplain = await bolehAkses("komplain");
   const bolehHumas =
     (await bolehAkses("humas")) || (await bolehAkses("humas_pelanggan"));
+  const bolehMcu = await bolehAkses("mcu");
 
   const { count } = await supabase
     .from("nomor")
@@ -85,6 +86,20 @@ export default async function Beranda() {
               <p className="text-sm text-tinta-2">
                 Bantuan menyusun siaran pers, kalender konten, rencana acara,
                 dan tanggapan.
+              </p>
+              <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
+            </Link>
+          )}
+
+          {bolehMcu && (
+            <Link
+              href="/mcu"
+              className="flex flex-col gap-2 rounded border border-garis bg-permukaan p-5 transition hover:border-hijau"
+            >
+              <p className="font-medium">Kalkulator MCU</p>
+              <p className="text-sm text-tinta-2">
+                Menghitung harga paket medical check-up untuk rekanan, beserta
+                laba dan marginnya.
               </p>
               <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
             </Link>
