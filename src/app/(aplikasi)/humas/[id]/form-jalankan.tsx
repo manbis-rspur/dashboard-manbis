@@ -5,7 +5,7 @@ import { jalankanModul, type HasilSusun } from "@/lib/humas-actions";
 import { TampilHasil } from "@/components/tampil-hasil";
 import type { Kolom } from "@/lib/modul-ai";
 
-const awal: HasilSusun = { pesan: null, hasil: null, judul: "" };
+const awal: HasilSusun = { pesan: null, hasil: null, judul: "", riwayatId: null };
 
 const gaya =
   "rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -137,7 +137,12 @@ export function FormJalankan({
       </form>
 
       {hasil.hasil && (
-        <TampilHasil judul={hasil.judul} hasil={hasil.hasil} namaBerkas={namaBerkas} />
+        <TampilHasil
+          judul={hasil.judul}
+          hasil={hasil.hasil}
+          namaBerkas={namaBerkas}
+          riwayatId={hasil.riwayatId}
+        />
       )}
     </div>
   );

@@ -7,7 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 import { susunDenganAI } from "@/lib/ai";
 import { bacaKolom, susunPerintah } from "@/lib/modul-ai";
 
-export type HasilSusun = { pesan: string | null; hasil: string | null; judul: string };
+export type HasilSusun = {
+  pesan: string | null;
+  hasil: string | null;
+  judul: string;
+  riwayatId: number | null;
+};
 
 /**
  * Menjalankan satu modul: menyusun perintah dari isian formulir,
@@ -20,7 +25,12 @@ export async function jalankanModul(
 ): Promise<HasilSusun> {
   const pengguna = await getPenggunaAktif();
   if (!pengguna || !(await bolehAkses("humas"))) {
-    return { pesan: "Anda tidak berhak memakai modul ini.", hasil: null, judul: "" };
+    return {
+      pesan: "Anda tidak berhak memakai modul ini.",
+      hasil: null,
+      judul: "",
+      riwayatId: null,
+    };
   }
 
   const modulId = Number(formData.get("modul_id"));
@@ -32,7 +42,8 @@ export async function jalankanModul(
     .eq("id", modulId)
     .maybeSingle();
 
-  if (!modul) return { pesan: "Modul tidak ditemukan.", hasil: null, judul: "" };
+  if (!modul)
+    return { pesan: "Modul tidak ditemukan.", hasil: null, judul: "", riwayatId: null };
 
   const kolom = bacaKolom(modul.kolom);
   const isian: Record<string, string> = {};
@@ -48,7 +59,7 @@ export async function jalankanModul(
     }
 
     if (k.wajib && (isian[k.kunci] === "" || isian[k.kunci] === "-")) {
-      return { pesan: `${k.label} harus diisi.`, hasil: null, judul: "" };
+      return { pesan: `${k.label} harus diisi.`, hasil: null, judul: "", riwayatId: null };
     }
   }
 
@@ -60,7 +71,7 @@ export async function jalankanModul(
     );
   } catch (galat) {
     const pesan = galat instanceof Error ? galat.message : "Gagal menghubungi Gemini.";
-    return { pesan, hasil: null, judul: "" };
+    return { pesan, hasil: null, judul: "", riwayatId: null };
   }
 
   // Judul riwayat diambil dari isian wajib pertama — itu biasanya
@@ -68,17 +79,21 @@ export async function jalankanModul(
   const kunciJudul = kolom.find((k) => k.wajib)?.kunci ?? kolom[0]?.kunci;
   const judul = (kunciJudul && isian[kunciJudul]) || modul.judul;
 
-  await supabase.from("riwayat_ai").insert({
-    modul_id: modul.id,
-    modul_judul: modul.judul,
-    judul: judul.slice(0, 200),
-    hasil,
-    masukan: isian,
-    oleh: pengguna.id,
-  });
+  const { data: tersimpan } = await supabase
+    .from("riwayat_ai")
+    .insert({
+      modul_id: modul.id,
+      modul_judul: modul.judul,
+      judul: judul.slice(0, 200),
+      hasil,
+      masukan: isian,
+      oleh: pengguna.id,
+    })
+    .select("id")
+    .single();
 
   revalidatePath("/humas/riwayat");
-  return { pesan: null, hasil, judul };
+  return { pesan: null, hasil, judul, riwayatId: tersimpan?.id ?? null };
 }
 
 export type HasilModul = { pesan: string | null; berhasil: string | null };

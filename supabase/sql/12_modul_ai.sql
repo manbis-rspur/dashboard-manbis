@@ -225,6 +225,8 @@ Bila format yang diminta DAFTAR, gunakan judul bagian per bulan atau per minggu,
 
 Tutup dengan tabel ringkas jam dan hari tayang terbaik, serta beberapa poin rekomendasi eksekusi dan evaluasi.
 
+Bila pilar Hari Besar Nasional dan Keagamaan dipilih, sertakan juga hari penting di luar hari kesehatan — misalnya Tahun Baru, Idul Fitri, Idul Adha, Natal, Hari Kemerdekaan, Hari Kartini, Hari Ibu, Hari Pendidikan Nasional, dan hari besar daerah Aceh. Kaitkan tiap hari besar dengan pesan yang wajar bagi rumah sakit: ucapan, informasi jadwal layanan selama libur, atau imbauan kesehatan yang relevan dengan kebiasaan pada hari itu. Jangan memaksakan kaitan medis yang dibuat-buat, dan jangan memakai hari berkabung sebagai bahan promosi layanan.
+
 Jangan menjanjikan klaim medis yang berlebihan, dan hindari topik yang menyerempet iklan layanan berbayar yang melanggar etika rumah sakit.$instruksi$,
 $pola$Buatkan kalender konten dan strategi publikasi Humas RSPUR yang lengkap, terstruktur, dan siap dikerjakan.
 
@@ -243,7 +245,7 @@ $kolom$[
  {"kunci":"durasi","label":"Durasi Kalender","jenis":"select","pilihan":["1 Bulan (jadwal harian)","12 Bulan (rencana tahunan)"],"bawaan":"1 Bulan (jadwal harian)"},
  {"kunci":"bulan_mulai","label":"Bulan Mulai","jenis":"select","pilihan":["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"],"bawaan":"September"},
  {"kunci":"tahun","label":"Tahun","jenis":"number","bawaan":"2026"},
- {"kunci":"pilar_konten","label":"Pilar Konten","jenis":"multiselect","pilihan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas","Testimoni & Kisah Pasien","Promo Layanan & Paket Pemeriksaan","Hari Kesehatan Nasional & Internasional","Kegiatan Sosial & CSR","Informasi Layanan & Jadwal Praktik"],"bawaan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas"]},
+ {"kunci":"pilar_konten","label":"Pilar Konten","jenis":"multiselect","pilihan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas","Testimoni & Kisah Pasien","Promo Layanan & Paket Pemeriksaan","Hari Kesehatan Nasional & Internasional","Hari Besar Nasional & Keagamaan","Kegiatan Sosial & CSR","Informasi Layanan & Jadwal Praktik"],"bawaan":["Edukasi Medis & Preventif","Profil Dokter Spesialis & Fasilitas"]},
  {"kunci":"format_keluaran","label":"Format Keluaran","jenis":"select","pilihan":["Tabel","Daftar"],"bawaan":"Tabel"}
 ]$kolom$::jsonb),
 

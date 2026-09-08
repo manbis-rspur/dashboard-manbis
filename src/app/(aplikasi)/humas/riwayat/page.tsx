@@ -52,7 +52,12 @@ export default async function HalamanRiwayat({
               Tutup
             </Link>
           </div>
-          <TampilHasil judul={terbuka.judul} hasil={terbuka.hasil} namaBerkas="dokumen-humas" />
+          <TampilHasil
+            judul={terbuka.judul}
+            hasil={terbuka.hasil}
+            namaBerkas="dokumen-humas"
+            riwayatId={terbuka.id}
+          />
         </div>
       )}
 
