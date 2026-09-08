@@ -149,9 +149,13 @@ export default async function HalamanDetailKomplain({
 
         <div className="flex flex-col gap-6">
           <section className="rounded border border-garis bg-permukaan p-5">
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
               Tindak lanjut
             </h2>
+            <p className="mt-1 mb-4 text-sm text-tinta-2">
+              Isi jawaban dan hasil penanganannya di sini. Waktu tanggapan
+              dicatat sekali, saat pertama kali disimpan.
+            </p>
             <FormTindakLanjut awal={awal} />
           </section>
 

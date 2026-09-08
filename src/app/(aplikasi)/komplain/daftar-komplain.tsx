@@ -108,7 +108,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
         </div>
       ) : (
         <div className="overflow-x-auto rounded border border-garis bg-permukaan">
-          <table className="w-full min-w-[52rem] border-collapse text-sm">
+          <table className="w-full min-w-[58rem] border-collapse text-sm">
             <thead>
               <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                 <th className="border-b border-garis px-4 py-2.5">Nomor</th>
@@ -118,6 +118,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
                 <th className="border-b border-garis px-4 py-2.5">Status</th>
                 <th className="border-b border-garis px-4 py-2.5">Grading</th>
                 <th className="border-b border-garis px-4 py-2.5">SLA</th>
+                <th className="border-b border-garis px-4 py-2.5"><span className="sr-only">Aksi</span></th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +157,18 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
                         {b.slaJam} jam
                       </span>
                     )}
+                  </td>
+                  <td className="border-b border-garis px-4 py-2.5 text-right whitespace-nowrap">
+                    <Link
+                      href={`/komplain/${b.id}`}
+                      className={
+                        b.status === "Selesai"
+                          ? "rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                          : "rounded bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                      }
+                    >
+                      {b.status === "Selesai" ? "Lihat" : "Tindak lanjut"}
+                    </Link>
                   </td>
                 </tr>
               ))}
