@@ -11,6 +11,13 @@ export default async function HalamanPengguna() {
     .select("id, nama, jabatan, email, peran, aktif, auth_user_id")
     .order("id");
 
+  const { data: akses } = await supabase
+    .from("akses_modul")
+    .select("pengguna_id, modul")
+    .eq("modul", "komplain");
+
+  const berizin = new Set((akses ?? []).map((a) => a.pengguna_id));
+
   const daftar: BarisPengguna[] = (data ?? []).map((p) => ({
     id: p.id,
     nama: p.nama,
@@ -19,6 +26,7 @@ export default async function HalamanPengguna() {
     peran: p.peran,
     aktif: p.aktif,
     punyaAkun: p.auth_user_id !== null,
+    bolehKomplain: berizin.has(p.id),
   }));
 
   return (

@@ -8,6 +8,7 @@ import {
   ubahPeran,
   hasilAwal,
 } from "@/lib/pengguna-actions";
+import { aturAkses } from "@/lib/komplain-actions";
 
 export type BarisPengguna = {
   id: number;
@@ -17,6 +18,7 @@ export type BarisPengguna = {
   peran: string;
   aktif: boolean;
   punyaAkun: boolean;
+  bolehKomplain: boolean;
 };
 
 const gayaInput =
@@ -106,6 +108,32 @@ export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
                   {p.aktif ? "Nonaktifkan" : "Aktifkan"}
                 </button>
               </form>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-garis pt-3">
+              {p.peran === "Admin" ? (
+                <p className="text-sm text-tinta-3">
+                  Sebagai Admin, berhak membuka semua modul.
+                </p>
+              ) : (
+                <form action={aturAkses}>
+                  <input type="hidden" name="pengguna_id" value={p.id} />
+                  <input type="hidden" name="modul" value="komplain" />
+                  <input type="hidden" name="beri" value={String(!p.bolehKomplain)} />
+                  <button
+                    type="submit"
+                    className={`rounded px-3 py-1.5 text-sm font-medium ${
+                      p.bolehKomplain
+                        ? "bg-hijau-muda text-hijau"
+                        : "border border-garis text-tinta-3 hover:bg-permukaan-2"
+                    }`}
+                  >
+                    {p.bolehKomplain
+                      ? "Boleh buka Komplain Pasien"
+                      : "Beri izin Komplain Pasien"}
+                  </button>
+                </form>
+              )}
             </div>
 
             <div className="border-t border-garis pt-3">

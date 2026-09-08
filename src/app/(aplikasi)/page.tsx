@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { bolehAkses } from "@/lib/akses";
 
 /**
  * Beranda unit — pintu masuk ke seluruh modul.
@@ -13,6 +14,7 @@ export default async function Beranda() {
   const pengguna = await wajibLogin();
   const supabase = await createClient();
   const tahun = new Date().getFullYear();
+  const bolehKomplain = await bolehAkses("komplain");
 
   const { count } = await supabase
     .from("nomor")
@@ -58,6 +60,19 @@ export default async function Beranda() {
               {count ?? 0} nomor diambil sepanjang {tahun}
             </p>
           </Link>
+
+          {bolehKomplain && (
+            <Link
+              href="/komplain"
+              className="flex flex-col gap-2 rounded border border-garis bg-permukaan p-5 transition hover:border-hijau"
+            >
+              <p className="font-medium">Komplain Pasien</p>
+              <p className="text-sm text-tinta-2">
+                Pencatatan dan tindak lanjut keluhan pelanggan RSPUR.
+              </p>
+              <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
+            </Link>
+          )}
 
           <Link
             href="/obrolan"

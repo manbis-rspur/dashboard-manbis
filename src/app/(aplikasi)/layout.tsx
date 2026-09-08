@@ -3,6 +3,7 @@ import Avatar from "@/components/avatar";
 import { keluar } from "@/lib/auth-actions";
 import { wajibLogin } from "@/lib/auth";
 import { bacaIdentitas } from "@/lib/identitas";
+import { bolehAkses } from "@/lib/akses";
 import { gayaWarna } from "@/lib/gaya-warna";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,7 +30,15 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
     .eq("id", pengguna.id)
     .maybeSingle();
 
-  const menu = [...MENU, ...(pengguna.peran === "Admin" ? MENU_ADMIN : [])];
+  // Komplain memuat data pasien, jadi menunya hanya muncul bagi yang
+  // memang diberi izin — bukan disembunyikan lewat peran saja.
+  const bolehKomplain = await bolehAkses("komplain");
+
+  const menu = [
+    ...MENU,
+    ...(bolehKomplain ? [{ href: "/komplain", label: "Komplain" }] : []),
+    ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),
+  ];
 
   return (
     <div className="flex min-h-full flex-col">
