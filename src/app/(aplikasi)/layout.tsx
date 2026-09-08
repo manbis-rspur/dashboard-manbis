@@ -43,6 +43,7 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
     ...(bolehKomplain ? [{ href: "/komplain", label: "Komplain" }] : []),
     ...(bolehMcu ? [{ href: "/mcu", label: "MCU" }] : []),
     ...(bolehPublikasi ? [{ href: "/publikasi", label: "Publikasi" }] : []),
+    { href: "/rekap", label: "Rekap" },
     ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),
   ];
 
