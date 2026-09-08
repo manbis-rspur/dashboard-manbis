@@ -84,10 +84,9 @@ export default async function Beranda() {
               href="/humas"
               className="flex flex-col gap-2 rounded border border-garis bg-permukaan p-5 transition hover:border-hijau"
             >
-              <p className="font-medium">Humas &amp; Digital Marketing</p>
+              <p className="font-medium">Layanan Pelanggan</p>
               <p className="text-sm text-tinta-2">
-                Bantuan menyusun siaran pers, kalender konten, rencana acara,
-                dan tanggapan.
+                Bantuan menyusun balasan ulasan dan komplain pasien.
               </p>
               <p className="mt-1 text-sm text-tinta-3">Terbatas</p>
             </Link>

@@ -43,7 +43,7 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   const menu = [
     ...MENU,
     ...(bolehKomplain ? [{ href: "/komplain", label: "Komplain" }] : []),
-    ...(bolehHumas ? [{ href: "/humas", label: "Humas" }] : []),
+    ...(bolehHumas ? [{ href: "/humas", label: "Layanan Pelanggan" }] : []),
     ...(bolehMcu ? [{ href: "/mcu", label: "MCU" }] : []),
     ...(bolehPublikasi ? [{ href: "/publikasi", label: "Publikasi" }] : []),
     ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),

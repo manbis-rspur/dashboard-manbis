@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { izinHumas, wajibHumas } from "@/lib/akses";
+import { wajibHumas } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { bacaKolom } from "@/lib/modul-ai";
 import { FormJalankan } from "./form-jalankan";
 
 export default async function HalamanModul({ params }: PageProps<"/humas/[id]">) {
   await wajibHumas();
-  const izin = await izinHumas();
   const { id } = await params;
 
   const supabase = await createClient();
@@ -35,14 +34,7 @@ export default async function HalamanModul({ params }: PageProps<"/humas/[id]">)
           <h1 className="text-2xl font-semibold tracking-tight">{modul.judul}</h1>
           <p className="mt-1 max-w-xl text-tinta-2">{modul.deskripsi}</p>
         </div>
-        {izin === "penuh" && (
-          <Link
-            href={`/humas/modul/${modul.id}`}
-            className="rounded border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
-          >
-            Sunting modul
-          </Link>
-        )}
+
       </div>
 
       <FormJalankan

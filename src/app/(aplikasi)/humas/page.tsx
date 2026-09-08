@@ -1,16 +1,20 @@
 import Link from "next/link";
-import { wajibHumas } from "@/lib/akses";
+import { KATEGORI_PELANGGAN, wajibHumas } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { bacaKolom } from "@/lib/modul-ai";
 
 export default async function HalamanHumas() {
-  const izin = await wajibHumas();
+  await wajibHumas();
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("modul_ai")
     .select("id, judul, deskripsi, kategori, kolom, bawaan, urutan")
     .eq("aktif", true)
+    // Modul penyusun lainnya berpindah ke dashboard Humas &
+    // Digital Marketing; yang tinggal di sini hanya yang menyangkut
+    // layanan pelanggan.
+    .eq("kategori", KATEGORI_PELANGGAN)
     .order("urutan")
     .order("id");
 
@@ -25,13 +29,10 @@ export default async function HalamanHumas() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Humas &amp; Digital Marketing
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Layanan Pelanggan</h1>
           <p className="mt-1 max-w-2xl text-tinta-2">
-            {izin === "penuh"
-              ? "Bantuan menyusun siaran pers, kalender konten, rencana acara, dan tanggapan — dikerjakan mesin, diperiksa manusia."
-              : "Seluruh dokumen yang disusun Humas dan Digital Marketing masuk ke Riwayat Dokumen. Modul penyusunnya dipegang mereka; yang terbuka di sini modul layanan pelanggan."}
+            Bantuan menyusun balasan ulasan dan komplain pasien — dikerjakan
+            mesin, diperiksa manusia.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -41,22 +42,15 @@ export default async function HalamanHumas() {
           >
             Riwayat dokumen
           </Link>
-          {izin === "penuh" && (
-            <Link
-              href="/humas/modul/baru"
-              className="rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
-            >
-              Buat modul
-            </Link>
-          )}
+
         </div>
       </div>
 
       {modul.length === 0 ? (
         <div className="rounded border border-garis bg-permukaan px-5 py-10 text-center">
-          <p className="font-medium">Belum ada modul yang terbuka untuk Anda.</p>
+          <p className="font-medium">Belum ada modul layanan pelanggan.</p>
           <p className="mt-1 text-sm text-tinta-3">
-            Dokumen yang disusun tim tetap bisa dibuka lewat Riwayat Dokumen.
+            Jalankan berkas SQL modul AI bila daftarnya masih kosong.
           </p>
         </div>
       ) : (
