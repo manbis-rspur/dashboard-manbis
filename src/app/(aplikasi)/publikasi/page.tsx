@@ -32,7 +32,7 @@ export default async function HalamanPublikasi() {
   const { data } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
     )
     .order("diunggah_pada", { ascending: false })
     .limit(200);
@@ -85,21 +85,32 @@ export default async function HalamanPublikasi() {
                   )}
                 </div>
 
-                {d.isi === null ? (
+                {d.tautan_docs && (
+                  <a
+                    href={d.tautan_docs}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                  >
+                    Google Docs
+                  </a>
+                )}
+
+                {d.isi === null && (
                   <a
                     href={`/publikasi/${d.id}/berkas`}
                     className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                   >
                     Unduh
                   </a>
-                ) : (
-                  <Link
-                    href={`/publikasi/${d.id}`}
-                    className="rounded bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
-                  >
-                    Buka &amp; sunting
-                  </Link>
                 )}
+
+                <Link
+                  href={`/publikasi/${d.id}`}
+                  className="rounded bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                >
+                  {d.isi === null ? "Buka" : "Buka & sunting"}
+                </Link>
 
                 <form action={hapusPublikasi}>
                   <input type="hidden" name="id" value={d.id} />

@@ -167,3 +167,48 @@ export async function simpanSuntingan(_s: Hasil, formData: FormData): Promise<Ha
   revalidatePath(`/publikasi/${id}`);
   return { pesan: null, berhasil: "Suntingan tersimpan." };
 }
+
+/**
+ * Menyimpan tautan Google Docs sebuah dokumen arsip.
+ *
+ * Hanya tautan yang disimpan, bukan berkasnya — dokumennya sendiri
+ * tetap tinggal di Drive milik yang mengunggah. Perlu diingat:
+ * suntingan yang dilakukan di Google Docs TIDAK tercatat di riwayat
+ * revisi sini, karena terjadi di luar sistem ini.
+ */
+export async function simpanTautanDocs(_s: Hasil, formData: FormData): Promise<Hasil> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+
+  const berhak = (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
+  if (!berhak) return { pesan: "Anda tidak berhak mengubah dokumen ini.", berhasil: null };
+
+  const id = Number(formData.get("id"));
+  const tautan = String(formData.get("tautan_docs") ?? "").trim();
+
+  if (tautan !== "" && !tautan.startsWith("https://")) {
+    return {
+      pesan: "Tautannya harus dimulai dengan https:// — salin apa adanya dari bilah alamat Google Docs.",
+      berhasil: null,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: tersentuh, error } = await supabase
+    .from("publikasi")
+    .update({ tautan_docs: tautan === "" ? null : tautan })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
+  if (!tersentuh || tersentuh.length === 0) {
+    return { pesan: "Tidak ada yang tersimpan — akun Anda mungkin belum berhak.", berhasil: null };
+  }
+
+  revalidatePath("/publikasi");
+  revalidatePath(`/publikasi/${id}`);
+  return {
+    pesan: null,
+    berhasil: tautan === "" ? "Tautan dihapus." : "Tautan Google Docs tersimpan.",
+  };
+}

@@ -4,6 +4,7 @@ import { bolehAkses } from "@/lib/akses";
 import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Penyunting } from "./penyunting";
+import { FormTautan } from "./form-tautan";
 
 const waktu = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
@@ -26,7 +27,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
   const { data: d } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, berkas_nama, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_nama, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama)",
     )
     .eq("id", Number(id))
     .maybeSingle();
@@ -79,6 +80,8 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
       ) : (
         <Penyunting id={d.id} isiAwal={d.isi} />
       )}
+
+      <FormTautan id={d.id} tautanAwal={d.tautan_docs} />
 
       {(revisi ?? []).length > 0 && (
         <section className="rounded border border-garis bg-permukaan p-5">
