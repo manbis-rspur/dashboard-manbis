@@ -9,7 +9,8 @@
 --   buku nomor surat beserta hitungannya
 --   komplain pasien beserta riwayat dan hitungan nomornya
 --   penawaran MCU
---   dokumen arsip beserta revisi dan berkasnya
+--   dokumen arsip beserta revisinya
+--   (berkasnya dihapus terpisah lewat menu Storage — lihat bawah)
 --   riwayat dokumen AI
 --   pesan obrolan
 --
@@ -28,12 +29,11 @@
 
 begin;
 
--- Berkas arsip dibuang lebih dulu, selagi catatan jalurnya masih
--- ada. Kalau barisnya dihapus duluan, jalur berkasnya ikut hilang
--- dan berkasnya tertinggal selamanya di penyimpanan.
-delete from storage.objects
- where bucket_id = 'dokumen'
-   and name like 'publikasi/%';
+-- Catatan: berkas di penyimpanan TIDAK bisa dihapus lewat SQL —
+-- Supabase melarangnya untuk mencegah kehilangan berkas karena
+-- salah perintah. Berkas arsipnya dihapus terpisah lewat menu
+-- Storage, dan semuanya berada di satu tempat: wadah 'dokumen',
+-- folder 'publikasi'. Lihat catatan di bawah berkas ini.
 
 delete from publikasi_revisi where id > 0;
 delete from publikasi        where id > 0;
@@ -67,3 +67,19 @@ union all select '— acuan —',        '—'
 union all select 'akun pengguna',    count(*)::text from pengguna
 union all select 'tarif MCU',        count(*)::text from mcu_item
 union all select 'modul AI',         count(*)::text from modul_ai;
+
+
+-- ============================================================
+-- LANGKAH TERAKHIR — DI LUAR SQL
+--
+-- Berkas arsip yang sudah diunggah masih tertinggal di
+-- penyimpanan. Hapus lewat menu Storage:
+--
+--   Supabase -> Storage -> wadah 'dokumen' -> folder 'publikasi'
+--   -> pilih semua isinya -> Delete
+--
+-- Folder 'komplain' pada wadah yang sama JANGAN disentuh —
+-- di situlah template formulir komplain resmi tersimpan.
+--
+-- Begitu pula wadah 'publik': berisi logo dan kop surat.
+-- ============================================================
