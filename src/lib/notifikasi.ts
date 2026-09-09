@@ -63,7 +63,6 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
     { data: komplain },
     { data: publikasi },
     { data: revisi },
-    { data: penawaran },
     { data: obrolan },
   ] = await Promise.all([
     supabase
@@ -92,11 +91,6 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       .from("publikasi_revisi")
       .select("id, publikasi_id, catatan, pada, oleh, pengguna(nama), publikasi(judul)")
       .order("pada", { ascending: false })
-      .limit(BANYAK),
-    supabase
-      .from("mcu_penawaran")
-      .select("id, rekanan, status, jumlah_peserta, dibuat_pada, dibuat_oleh, pengguna(nama)")
-      .order("dibuat_pada", { ascending: false })
       .limit(BANYAK),
     supabase
       .from("obrolan")
@@ -173,18 +167,6 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       waktu: r.pada,
       tautan: `/publikasi/${r.publikasi_id}`,
       olehSaya: r.oleh === pengguna.id,
-    });
-  }
-
-  for (const m of penawaran ?? []) {
-    daftar.push({
-      kunci: `mcu-${m.id}`,
-      ikon: "mcu",
-      judul: `Penawaran MCU ${m.status.toLowerCase()}`,
-      rincian: `${potong(m.rekanan, 40)} — ${m.jumlah_peserta} peserta`,
-      waktu: m.dibuat_pada,
-      tautan: `/mcu/${m.id}`,
-      olehSaya: m.dibuat_oleh === pengguna.id,
     });
   }
 

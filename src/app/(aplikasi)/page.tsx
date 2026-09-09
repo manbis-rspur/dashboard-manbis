@@ -85,7 +85,6 @@ export default async function Beranda() {
   const tahun = sekarang.getFullYear();
 
   const bolehKomplain = await bolehAkses("komplain");
-  const bolehMcu = await bolehAkses("mcu");
   const bolehPublikasi =
     (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
 
@@ -247,16 +246,6 @@ export default async function Beranda() {
               ikon="komplain"
               judul="Komplain Pasien"
               isi="Pencatatan dan tindak lanjut keluhan pelanggan RSPUR."
-              terbatas
-            />
-          )}
-
-          {bolehMcu && (
-            <Modul
-              href="/mcu"
-              ikon="mcu"
-              judul="Kalkulator MCU"
-              isi="Menghitung harga paket medical check-up untuk rekanan, beserta laba dan marginnya."
               terbatas
             />
           )}

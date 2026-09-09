@@ -1,7 +1,6 @@
 import { bolehAkses } from "@/lib/akses";
 import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { hitungPenawaran, rupiah, type RincianItem } from "@/lib/mcu";
 import { SLA_JAM } from "@/lib/komplain-pilihan";
 import { PemilihBulan } from "./pemilih-bulan";
 
@@ -78,9 +77,8 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
   const { awal, akhir } = rentang(bulan, tahun);
 
   const supabase = await createClient();
-  const [bolehKomplain, bolehMcu, bolehPublikasi] = await Promise.all([
+  const [bolehKomplain, bolehPublikasi] = await Promise.all([
     bolehAkses("komplain"),
-    bolehAkses("mcu"),
     bolehAkses("publikasi").then(async (a) => a || (await bolehAkses("humas"))),
   ]);
 
@@ -100,14 +98,6 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
         .lt("waktu_pelaporan", akhir)
     : { data: null };
 
-  const { data: penawaran } = bolehMcu
-    ? await supabase
-        .from("mcu_penawaran")
-        .select("rekanan, status, jumlah_peserta, harga_paket, kena_ppn, ppn_persen, rincian")
-        .gte("dibuat_pada", awal)
-        .lt("dibuat_pada", akhir)
-    : { data: null };
-
   const { data: publikasi } = bolehPublikasi
     ? await supabase
         .from("publikasi")
@@ -120,14 +110,6 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
   const ditanggapi = (komplain ?? []).filter((k) => k.sla_jam !== null);
   const memenuhi = ditanggapi.filter((k) => k.sla_status === "Met").length;
 
-  const hitunganMcu = (penawaran ?? []).map((p) =>
-    hitungPenawaran((p.rincian ?? []) as RincianItem[], {
-      hargaPaket: p.harga_paket,
-      jumlahPeserta: p.jumlah_peserta,
-      kenaPpn: p.kena_ppn,
-      ppnPersen: Number(p.ppn_persen),
-    }),
-  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -207,27 +189,6 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
             <Rincian judul="Menurut kategori" baris={kelompokkan((komplain ?? []).map((k) => k.kategori_masalah))} />
             <Rincian judul="Menurut grading" baris={kelompokkan((komplain ?? []).map((k) => k.grading))} />
           </div>
-        </section>
-      )}
-
-      {bolehMcu && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
-            Penawaran MCU
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Angka label="Penawaran dibuat" nilai={(penawaran ?? []).length} />
-            <Angka
-              label="Nilai tagihan"
-              nilai={rupiah(hitunganMcu.reduce((j, h) => j + h.totalTagihan, 0))}
-            />
-            <Angka
-              label="Pendapatan bersih"
-              nilai={rupiah(hitunganMcu.reduce((j, h) => j + h.pendapatan, 0))}
-              keterangan="setelah PPN dikeluarkan"
-            />
-          </div>
-          <Rincian judul="Menurut status" baris={kelompokkan((penawaran ?? []).map((p) => p.status))} />
         </section>
       )}
 
