@@ -13,6 +13,10 @@ import type { Hasil } from "@/lib/hasil";
  * baris ini lewat jalur biasa — termasuk Admin. Jadi pintu ini
  * satu-satunya, dan penjaganya ada di sini: pemeriksaan peran,
  * penegasan yang harus diketik, dan pencatatan setelahnya.
+ *
+ * Penawaran MCU tidak ada di sini lagi: modulnya pindah ke Dashboard
+ * Humas & Pemasaran, dan alat pembersihnya ikut pindah supaya
+ * penghapusan dilakukan dari tempat datanya dipakai.
  */
 const KUMPULAN = {
   nomor: {
@@ -35,13 +39,6 @@ const KUMPULAN = {
       { nama: "komplain", saring: "id=gt.0" },
       { nama: "nomor_urut_komplain", saring: "tanggal=not.is.null" },
     ],
-  },
-  mcu: {
-    nama: "Penawaran MCU",
-    penegasan: "HAPUS PENAWARAN",
-    keterangan:
-      "Seluruh penawaran MCU. Daftar tarif pemeriksaan tidak ikut terhapus.",
-    tabel: [{ nama: "mcu_penawaran", saring: "id=gt.0" }],
   },
   publikasi: {
     nama: "Arsip publikasi",

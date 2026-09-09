@@ -15,7 +15,6 @@ const waktu = new Intl.DateTimeFormat("id-ID", {
 const HITUNG: Record<string, string> = {
   nomor: "nomor",
   komplain: "komplain",
-  mcu: "mcu_penawaran",
   publikasi: "publikasi",
   obrolan: "obrolan",
 };
@@ -51,8 +50,8 @@ export default async function HalamanHapusData() {
       <div className="mt-6 rounded-lg border-l-2 border-merah bg-permukaan-2 px-4 py-3">
         <p className="text-sm font-medium">Tidak bisa dibatalkan.</p>
         <p className="mt-1 text-sm text-tinta-2">
-          Di luar halaman ini, tidak ada satu pun cara menghapus nomor surat,
-          komplain, atau penawaran — bahkan bagi Admin. Aturannya memang
+          Di luar halaman ini, tidak ada satu pun cara menghapus nomor surat
+          atau komplain — bahkan bagi Admin. Aturannya memang
           begitu: yang keliru ditandai batal, tidak dilenyapkan. Halaman ini
           satu-satunya pengecualian, dan setiap pemakaiannya dicatat.
         </p>

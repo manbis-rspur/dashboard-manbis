@@ -59,7 +59,7 @@ export default async function HalamanPublikasi() {
         <p className="mt-1 max-w-2xl text-tinta-2">
           {bolehUnggah
             ? "Dokumen yang sudah final diunggah ke sini supaya Koordinator bisa membacanya."
-            : "Dokumen hasil kerja Humas dan Digital Marketing yang sudah final."}
+            : "Dokumen hasil kerja Humas dan Pemasaran yang sudah final."}
         </p>
       </div>
 

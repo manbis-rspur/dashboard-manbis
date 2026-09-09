@@ -255,7 +255,7 @@ export default async function Beranda() {
               href="/publikasi"
               ikon="publikasi"
               judul="Arsip Publikasi"
-              isi="Dokumen hasil kerja Humas dan Digital Marketing yang sudah final."
+              isi="Dokumen hasil kerja Humas dan Pemasaran yang sudah final."
             />
           )}
 
