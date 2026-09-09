@@ -120,7 +120,7 @@ export function RuangObrolan({
   }));
 
   return (
-    <div className="flex h-[calc(100vh-13rem)] flex-col rounded border border-garis bg-permukaan">
+    <div className="flex h-[calc(100vh-13rem)] flex-col rounded-lg border border-garis bg-permukaan">
       <div className="flex-1 overflow-y-auto p-4">
         {pesan.length === 0 && (
           <p className="py-12 text-center text-sm text-tinta-3">
@@ -189,12 +189,12 @@ export function RuangObrolan({
             value={teks}
             onChange={(e) => setTeks(e.target.value)}
             placeholder="Tulis pesan untuk anggota manbis…"
-            className="flex-1 rounded border border-garis bg-kertas px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+            className="flex-1 rounded-lg border border-garis bg-kertas px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
           />
           <button
             type="submit"
             disabled={sibuk || !teks.trim()}
-            className="rounded bg-hijau px-5 py-2 font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-hijau px-5 py-2 font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             Kirim
           </button>

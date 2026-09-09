@@ -27,7 +27,7 @@ function Angka({
   keterangan?: string;
 }) {
   return (
-    <div className="rounded border border-garis bg-permukaan px-4 py-3">
+    <div className="rounded-lg border border-garis bg-permukaan px-4 py-3">
       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
         {label}
       </p>
@@ -40,7 +40,7 @@ function Angka({
 function Rincian({ judul, baris }: { judul: string; baris: [string, string][] }) {
   if (baris.length === 0) return null;
   return (
-    <div className="rounded border border-garis bg-permukaan p-4">
+    <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-4">
       <p className="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
         {judul}
       </p>

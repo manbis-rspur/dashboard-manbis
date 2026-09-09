@@ -22,7 +22,7 @@ export function FormUnggah() {
   return (
     <form
       action={kirim}
-      className="flex flex-col gap-3 rounded border border-garis bg-permukaan p-5"
+      className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-5"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
         Unggah dokumen hasil
@@ -58,7 +58,7 @@ export function FormUnggah() {
         <button
           type="submit"
           disabled={sedang}
-          className="w-fit rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="w-fit rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
           {sedang ? "Mengunggah…" : "Unggah"}
         </button>

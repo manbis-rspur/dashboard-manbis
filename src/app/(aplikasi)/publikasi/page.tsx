@@ -53,7 +53,7 @@ export default async function HalamanPublikasi() {
       {bolehUnggah && <FormUnggah />}
 
       {dokumen.length === 0 ? (
-        <div className="rounded border border-garis bg-permukaan px-5 py-10 text-center">
+        <div className="rounded-lg border border-garis bg-permukaan px-5 py-10 text-center">
           <p className="font-medium">Belum ada dokumen.</p>
           <p className="mt-1 text-sm text-tinta-3">
             {bolehUnggah
@@ -68,7 +68,7 @@ export default async function HalamanPublikasi() {
             return (
               <li
                 key={d.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded border border-garis bg-permukaan px-4 py-3"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-garis bg-permukaan px-4 py-3"
               >
                 <div className="mr-auto min-w-0">
                   <Link href={`/publikasi/${d.id}`} className="font-medium hover:underline">
@@ -90,7 +90,7 @@ export default async function HalamanPublikasi() {
                     href={d.tautan_docs}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                    className="rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                   >
                     Google Docs
                   </a>
@@ -99,7 +99,7 @@ export default async function HalamanPublikasi() {
                 {d.isi === null && (
                   <a
                     href={`/publikasi/${d.id}/berkas`}
-                    className="rounded border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                    className="rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                   >
                     Unduh
                   </a>
@@ -107,7 +107,7 @@ export default async function HalamanPublikasi() {
 
                 <Link
                   href={`/publikasi/${d.id}`}
-                  className="rounded bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                  className="rounded-lg bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
                 >
                   {d.isi === null ? "Buka" : "Buka & sunting"}
                 </Link>

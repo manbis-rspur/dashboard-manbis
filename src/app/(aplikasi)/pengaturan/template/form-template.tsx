@@ -20,7 +20,7 @@ export function FormTemplate() {
           name="berkas"
           accept=".docx"
           required
-          className="rounded border border-garis bg-permukaan px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-permukaan-2 file:px-3 file:py-1.5 file:text-sm file:font-medium"
+          className="rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-permukaan-2 file:px-3 file:py-1.5 file:text-sm file:font-medium"
         />
       </label>
 
@@ -33,7 +33,7 @@ export function FormTemplate() {
       <button
         type="submit"
         disabled={sedang}
-        className="w-fit rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+        className="w-fit rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
         {sedang ? "Menyimpan…" : "Simpan template"}
       </button>

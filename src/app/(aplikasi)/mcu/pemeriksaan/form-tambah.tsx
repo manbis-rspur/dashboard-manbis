@@ -11,7 +11,7 @@ export function FormTambah() {
   const [hasil, kirim, sedang] = useActionState(simpanPemeriksaan, hasilAwal);
 
   return (
-    <form action={kirim} className="flex flex-col gap-3 rounded border border-garis bg-permukaan p-4">
+    <form action={kirim} className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
         Tambah pemeriksaan
       </p>
@@ -22,7 +22,7 @@ export function FormTambah() {
         <button
           type="submit"
           disabled={sedang}
-          className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
           {sedang ? "Menyimpan…" : "Tambah"}
         </button>

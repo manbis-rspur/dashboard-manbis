@@ -14,7 +14,7 @@ function Angka({
   warna?: string;
 }) {
   return (
-    <div className="rounded border border-garis bg-permukaan px-4 py-3">
+    <div className="rounded-lg border border-garis bg-permukaan px-4 py-3">
       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
         {label}
       </p>
@@ -69,7 +69,7 @@ export default async function HalamanKomplain() {
         </div>
         <Link
           href="/komplain/baru"
-          className="rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
         >
           Catat komplain
         </Link>

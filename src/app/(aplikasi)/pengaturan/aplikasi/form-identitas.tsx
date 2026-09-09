@@ -191,7 +191,7 @@ export function FormIdentitas({
         </h2>
 
         <div className="flex flex-wrap items-center gap-5">
-          <div className="flex h-24 w-24 items-center justify-center rounded border border-garis bg-permukaan p-2">
+          <div className="flex h-24 w-24 items-center justify-center rounded-lg border border-garis bg-permukaan p-2">
             {logo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logo} alt="Logo RSPUR" className="max-h-full max-w-full object-contain" />
@@ -206,7 +206,7 @@ export function FormIdentitas({
                 type="button"
                 disabled={sibuk}
                 onClick={() => berkasRef.current?.click()}
-                className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+                className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
               >
                 {sibuk ? "Memproses…" : logo ? "Ganti logo" : "Unggah logo"}
               </button>
@@ -215,7 +215,7 @@ export function FormIdentitas({
                   type="button"
                   disabled={sibuk}
                   onClick={buangLogo}
-                  className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
+                  className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
                 >
                   Hapus logo
                 </button>
@@ -291,7 +291,7 @@ export function FormIdentitas({
           </p>
         </div>
 
-        <div className="rounded border border-garis bg-permukaan p-3">
+        <div className="rounded-lg border border-garis bg-permukaan p-3">
           {kop ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={kop} alt="Kop surat" className="w-full" />
@@ -307,7 +307,7 @@ export function FormIdentitas({
             type="button"
             disabled={sibuk}
             onClick={() => kopRef.current?.click()}
-            className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+            className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
           >
             {sibuk ? "Memproses…" : kop ? "Ganti kop surat" : "Unggah kop surat"}
           </button>
@@ -316,7 +316,7 @@ export function FormIdentitas({
               type="button"
               disabled={sibuk}
               onClick={buangKop}
-              className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
+              className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
             >
               Hapus kop
             </button>
@@ -356,7 +356,7 @@ export function FormIdentitas({
           onChange={(e) => setAlamat(e.target.value)}
           rows={4}
           placeholder={"Jalan ...\nKecamatan ..., Kota ...\nTelp ... · Email ..."}
-          className="w-full rounded border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+          className="w-full rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
         />
 
         <button
@@ -375,7 +375,7 @@ export function FormIdentitas({
             }
             setSibuk(false);
           }}
-          className="w-fit rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="w-fit rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
           Simpan alamat
         </button>

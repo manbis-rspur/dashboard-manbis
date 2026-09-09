@@ -22,7 +22,7 @@ export function FormTautan({
   const [hasil, kirim, sedang] = useActionState(simpanTautanDocs, hasilAwal);
 
   return (
-    <section className="rounded border border-garis bg-permukaan p-5">
+    <section className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
       <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
         Google Docs
       </h2>
@@ -32,7 +32,7 @@ export function FormTautan({
           href={tautanAwal}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="mt-3 inline-block rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
           Buka di Google Docs
         </a>
@@ -46,12 +46,12 @@ export function FormTautan({
             type="url"
             defaultValue={tautanAwal ?? ""}
             placeholder="https://docs.google.com/document/d/…"
-            className="min-w-56 flex-1 rounded border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+            className="min-w-56 flex-1 rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
           />
           <button
             type="submit"
             disabled={sedang}
-            className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
+            className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
           >
             {sedang ? "Menyimpan…" : tautanAwal ? "Ganti tautan" : "Simpan tautan"}
           </button>

@@ -49,7 +49,7 @@ function FormAkun({ pengguna }: { pengguna: BarisPengguna }) {
       <button
         type="submit"
         disabled={sedang}
-        className="rounded bg-hijau px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+        className="rounded-lg bg-hijau px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
         {sedang ? "Membuat…" : "Buatkan akun"}
       </button>
@@ -92,7 +92,7 @@ function KendaliPeran({ pengguna }: { pengguna: BarisPengguna }) {
           <input type="hidden" name="aktif" value={String(!pengguna.aktif)} />
           <button
             type="submit"
-            className="rounded border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             {pengguna.aktif ? "Nonaktifkan" : "Aktifkan"}
           </button>
@@ -114,14 +114,14 @@ export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
         {daftar.map((p) => (
           <div
             key={p.id}
-            className="flex flex-col gap-3 rounded border border-garis bg-permukaan p-4"
+            className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-4"
           >
             <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
               <div className="mr-auto">
                 <p className="font-medium">
                   {p.nama}
                   {!p.aktif && (
-                    <span className="ml-2 rounded bg-permukaan-2 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-tinta-3">
+                    <span className="ml-2 rounded-lg bg-permukaan-2 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-tinta-3">
                       Nonaktif
                     </span>
                   )}
@@ -173,7 +173,7 @@ export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
         ))}
       </div>
 
-      <div className="rounded border border-garis bg-permukaan p-4">
+      <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-4">
         {!bukaTambah ? (
           <button
             type="button"
@@ -204,14 +204,14 @@ export function DaftarPengguna({ daftar }: { daftar: BarisPengguna[] }) {
               <button
                 type="submit"
                 disabled={sedangTambah}
-                className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+                className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
               >
                 {sedangTambah ? "Menyimpan…" : "Simpan anggota"}
               </button>
               <button
                 type="button"
                 onClick={() => setBukaTambah(false)}
-                className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+                className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
               >
                 Batal
               </button>

@@ -18,7 +18,7 @@ export default function LayoutPenomoran({ children }: LayoutProps<"/penomoran">)
             <Link
               key={h.href}
               href={h.href}
-              className="rounded px-3 py-1.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
             >
               {h.label}
             </Link>

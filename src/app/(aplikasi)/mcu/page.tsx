@@ -43,13 +43,13 @@ export default async function HalamanMcu() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/mcu/pemeriksaan"
-            className="rounded border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             Daftar pemeriksaan
           </Link>
           <Link
             href="/mcu/baru"
-            className="rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
           >
             Penawaran baru
           </Link>
@@ -57,14 +57,14 @@ export default async function HalamanMcu() {
       </div>
 
       {penawaran.length === 0 ? (
-        <div className="rounded border border-garis bg-permukaan px-5 py-10 text-center">
+        <div className="rounded-lg border border-garis bg-permukaan px-5 py-10 text-center">
           <p className="font-medium">Belum ada penawaran.</p>
           <p className="mt-1 text-sm text-tinta-3">
             Mulai dari Penawaran baru — pilih pemeriksaannya, lalu lihat labanya.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded border border-garis bg-permukaan">
+        <div className="overflow-x-auto rounded-xl shadow-lembut border border-garis bg-permukaan">
           <table className="w-full min-w-[54rem] border-collapse text-sm">
             <thead>
               <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">

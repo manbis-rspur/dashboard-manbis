@@ -53,7 +53,7 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
 
   if (hasil.kode) {
     return (
-      <div className="rounded border border-garis bg-permukaan p-6">
+      <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
           Komplain tercatat
         </p>
@@ -65,14 +65,14 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/komplain"
-            className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
             Lihat daftar komplain
           </Link>
           <button
             type="button"
             onClick={mulaiLagi}
-            className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             Catat komplain lain
           </button>
@@ -180,7 +180,7 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
       </section>
 
       {hasil.pesan && (
-        <p className="rounded border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
+        <p className="rounded-lg border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
           {hasil.pesan}
         </p>
       )}
@@ -189,13 +189,13 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
         <button
           type="submit"
           disabled={sedang}
-          className="rounded bg-hijau px-5 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-hijau px-5 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
           {sedang ? "Menyimpan…" : "Simpan komplain"}
         </button>
         <Link
           href="/komplain"
-          className="rounded border border-garis px-5 py-2.5 font-medium text-tinta-2 hover:bg-permukaan-2"
+          className="rounded-lg border border-garis px-5 py-2.5 font-medium text-tinta-2 hover:bg-permukaan-2"
         >
           Batal
         </Link>

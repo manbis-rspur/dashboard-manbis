@@ -30,13 +30,13 @@ export function KotakHapus({
   const cocok = diketik.trim() === penegasan;
 
   return (
-    <form action={kirim} className="flex flex-col gap-3 rounded border border-garis bg-permukaan p-5">
+    <form action={kirim} className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
       <input type="hidden" name="jenis" value={kunci} />
 
       <div>
         <p className="font-medium">
           {nama}
-          <span className="ml-2 rounded bg-permukaan-2 px-1.5 py-0.5 text-xs font-normal text-tinta-3">
+          <span className="ml-2 rounded-lg bg-permukaan-2 px-1.5 py-0.5 text-xs font-normal text-tinta-3">
             {jumlah} baris
           </span>
         </p>
@@ -57,14 +57,14 @@ export function KotakHapus({
               value={diketik}
               onChange={(e) => setDiketik(e.target.value)}
               autoComplete="off"
-              className="w-fit rounded border border-garis bg-permukaan px-3 py-2 font-mono text-sm outline-none focus:border-merah focus:ring-2 focus:ring-[#f1dfe1]"
+              className="w-fit rounded-lg border border-garis bg-permukaan px-3 py-2 font-mono text-sm outline-none focus:border-merah focus:ring-2 focus:ring-[#f1dfe1]"
             />
           </label>
 
           <button
             type="submit"
             disabled={!cocok || sedang}
-            className="w-fit rounded bg-merah px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-fit rounded-lg bg-merah px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {sedang ? "Menghapus…" : `Kosongkan ${nama.toLowerCase()}`}
           </button>

@@ -1,25 +1,30 @@
 import Link from "next/link";
 import Avatar from "@/components/avatar";
+import Ikon from "@/components/ikon";
+import Kedip from "@/components/kedip";
+import Lonceng from "@/components/lonceng";
+import Navigasi, { type ButirMenu } from "@/components/navigasi";
 import { keluar } from "@/lib/auth-actions";
 import { wajibLogin } from "@/lib/auth";
 import { bacaIdentitas } from "@/lib/identitas";
+import { bacaLonceng } from "@/lib/notifikasi";
 import { bolehAkses } from "@/lib/akses";
 import { gayaWarna } from "@/lib/gaya-warna";
 import { createClient } from "@/lib/supabase/server";
 
-const MENU = [
-  { href: "/", label: "Beranda" },
-  { href: "/penomoran/ambil-nomor", label: "Penomoran" },
-  { href: "/obrolan", label: "Obrolan" },
-] as const;
+const MENU: ButirMenu[] = [
+  { href: "/", label: "Beranda", ikon: "beranda" },
+  { href: "/penomoran/ambil-nomor", label: "Penomoran", ikon: "penomoran" },
+  { href: "/obrolan", label: "Obrolan", ikon: "obrolan" },
+];
 
 /** Menu yang hanya muncul untuk Koordinator. */
-const MENU_ADMIN = [
-  { href: "/pengaturan/pengguna", label: "Pengguna" },
-  { href: "/pengaturan/aplikasi", label: "Tampilan" },
-  { href: "/pengaturan/template", label: "Template" },
-  { href: "/pengaturan/hapus-data", label: "Hapus Data" },
-] as const;
+const MENU_ADMIN: ButirMenu[] = [
+  { href: "/pengaturan/pengguna", label: "Pengguna", ikon: "pengguna" },
+  { href: "/pengaturan/aplikasi", label: "Tampilan", ikon: "tampilan" },
+  { href: "/pengaturan/template", label: "Template", ikon: "template" },
+  { href: "/pengaturan/hapus-data", label: "Hapus Data", ikon: "hapus" },
+];
 
 export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   const pengguna = await wajibLogin();
@@ -39,12 +44,18 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   const bolehPublikasi =
     (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
 
-  const menu = [
+  const lonceng = await bacaLonceng();
+
+  const menu: ButirMenu[] = [
     ...MENU,
-    ...(bolehKomplain ? [{ href: "/komplain", label: "Komplain" }] : []),
-    ...(bolehMcu ? [{ href: "/mcu", label: "MCU" }] : []),
-    ...(bolehPublikasi ? [{ href: "/publikasi", label: "Publikasi" }] : []),
-    { href: "/rekap", label: "Rekap" },
+    ...(bolehKomplain
+      ? [{ href: "/komplain", label: "Komplain", ikon: "komplain" as const }]
+      : []),
+    ...(bolehMcu ? [{ href: "/mcu", label: "MCU", ikon: "mcu" as const }] : []),
+    ...(bolehPublikasi
+      ? [{ href: "/publikasi", label: "Publikasi", ikon: "publikasi" as const }]
+      : []),
+    { href: "/rekap", label: "Rekap", ikon: "rekap" },
     ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),
   ];
 
@@ -55,8 +66,14 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
           terasa satu keluarga dengan logonya. */}
       {identitas.warnaUtama && <style>{gayaWarna(identitas.warnaUtama)}</style>}
 
-      <header className="border-b border-garis bg-permukaan">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3">
+      <Kedip />
+
+      <header className="sticky top-0 z-40 border-b border-garis bg-permukaan/95 backdrop-blur">
+        {/* Garis warna rumah sakit di bibir atas layar. Tipis saja —
+            penanda milik siapa halaman ini, bukan hiasan. */}
+        <div className="h-[3px] bg-hijau" />
+
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-3 px-5 py-2.5">
           <Link href="/" className="mr-auto flex items-center gap-3">
             {identitas.logoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -74,22 +91,14 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
             </span>
           </Link>
 
-          <nav className="flex flex-wrap gap-1">
-            {menu.map((m) => (
-              <Link
-                key={m.href}
-                href={m.href}
-                className="rounded px-3 py-1.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
-              >
-                {m.label}
-              </Link>
-            ))}
-          </nav>
+          <Navigasi menu={menu} />
 
-          <div className="flex items-center gap-3 border-l border-garis pl-4">
+          <div className="flex items-center gap-2.5 border-l border-garis pl-4">
+            <Lonceng daftar={lonceng.daftar} baru={lonceng.baru} />
+
             <Link
               href="/profil"
-              className="flex items-center gap-2.5 rounded px-1 py-1 hover:bg-permukaan-2"
+              className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-permukaan-2"
             >
               <Avatar nama={pengguna.nama} foto={data?.foto_url} ukuran={32} />
               <span className="hidden text-right leading-tight sm:block">
@@ -97,19 +106,28 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
                 <span className="block text-xs text-tinta-3">{pengguna.jabatan}</span>
               </span>
             </Link>
+
             <form action={keluar}>
               <button
                 type="submit"
-                className="rounded border border-garis px-2.5 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                aria-label="Keluar"
+                title="Keluar"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-garis text-tinta-2 hover:bg-permukaan-2"
               >
-                Keluar
+                <Ikon nama="keluar" ukuran={17} />
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">{children}</main>
+
+      <footer className="border-t border-garis px-5 py-4">
+        <p className="mx-auto max-w-6xl text-xs text-tinta-3">
+          {identitas.namaUnit} — RS Pertamedika Ummi Rosnati
+        </p>
+      </footer>
     </div>
   );
 }

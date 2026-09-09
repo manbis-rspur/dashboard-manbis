@@ -90,7 +90,7 @@ export function FormFoto({ nama, foto }: { nama: string; foto: string | null }) 
             type="button"
             disabled={sibuk}
             onClick={() => berkasRef.current?.click()}
-            className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+            className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
           >
             {sibuk ? "Memproses…" : foto ? "Ganti foto" : "Unggah foto"}
           </button>
@@ -100,7 +100,7 @@ export function FormFoto({ nama, foto }: { nama: string; foto: string | null }) 
               type="button"
               disabled={sibuk}
               onClick={buang}
-              className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
+              className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2 disabled:opacity-60"
             >
               Hapus foto
             </button>

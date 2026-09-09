@@ -24,7 +24,7 @@ export function AksiPenawaran({
             <button
               type="submit"
               disabled={sedang}
-              className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+              className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
             >
               {sedang ? "Mengambil nomor…" : "Terbitkan & ambil nomor surat"}
             </button>
@@ -37,7 +37,7 @@ export function AksiPenawaran({
             <input type="hidden" name="status" value="Disetujui" />
             <button
               type="submit"
-              className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+              className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
             >
               Tandai disetujui rekanan
             </button>
@@ -56,7 +56,7 @@ export function AksiPenawaran({
       </div>
 
       {hasil.pesan && (
-        <p className="rounded border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
+        <p className="rounded-lg border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
           {hasil.pesan}
         </p>
       )}

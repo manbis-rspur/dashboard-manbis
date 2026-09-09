@@ -81,7 +81,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
-        <section className="overflow-x-auto rounded border border-garis bg-permukaan">
+        <section className="overflow-x-auto rounded-xl shadow-lembut border border-garis bg-permukaan">
           <table className="w-full min-w-[30rem] border-collapse text-sm">
             <thead>
               <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
@@ -111,7 +111,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
         </section>
 
         <aside className="flex flex-col gap-4">
-          <div className="rounded border border-garis bg-permukaan p-5">
+          <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
               Hitungan
             </h2>
@@ -138,7 +138,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
               <Baris label="Total biaya" nilai={rupiah(h.totalBiaya)} warna="text-tinta-3" />
             </div>
 
-            <div className="mt-2 rounded bg-permukaan-2 p-3">
+            <div className="mt-2 rounded-lg bg-permukaan-2 p-3">
               <Baris
                 label="Pendapatan bersih"
                 nilai={rupiah(h.pendapatan)}
@@ -149,7 +149,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
             </div>
           </div>
 
-          <div className="rounded border border-garis bg-permukaan p-5">
+          <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
               Dokumen
             </h2>
@@ -158,7 +158,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
                 href={`/mcu/${p.id}/cetak`}
                 target="_blank"
                 rel="noopener"
-                className="inline-block rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                className="inline-block rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
               >
                 Surat penawaran
               </a>
@@ -175,7 +175,7 @@ export default async function HalamanPenawaran({ params }: PageProps<"/mcu/[id]"
       </div>
 
       {p.catatan && (
-        <section className="rounded border border-garis bg-permukaan p-5">
+        <section className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
             Catatan
           </h2>

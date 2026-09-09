@@ -48,7 +48,7 @@ export default async function HalamanHapusData() {
         saat sudah berjalan.
       </p>
 
-      <div className="mt-6 rounded border-l-2 border-merah bg-permukaan-2 px-4 py-3">
+      <div className="mt-6 rounded-lg border-l-2 border-merah bg-permukaan-2 px-4 py-3">
         <p className="text-sm font-medium">Tidak bisa dibatalkan.</p>
         <p className="mt-1 text-sm text-tinta-2">
           Di luar halaman ini, tidak ada satu pun cara menghapus nomor surat,

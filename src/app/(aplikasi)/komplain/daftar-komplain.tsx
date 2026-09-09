@@ -88,7 +88,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
               setStatus("");
               setGrading("");
             }}
-            className="rounded border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             Bersihkan
           </button>
@@ -96,7 +96,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
       </div>
 
       {tersaring.length === 0 ? (
-        <div className="rounded border border-garis bg-permukaan px-5 py-10 text-center">
+        <div className="rounded-lg border border-garis bg-permukaan px-5 py-10 text-center">
           <p className="font-medium">
             {baris.length === 0 ? "Belum ada komplain tercatat." : "Tidak ada yang cocok."}
           </p>
@@ -107,7 +107,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded border border-garis bg-permukaan">
+        <div className="overflow-x-auto rounded-xl shadow-lembut border border-garis bg-permukaan">
           <table className="w-full min-w-[58rem] border-collapse text-sm">
             <thead>
               <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">

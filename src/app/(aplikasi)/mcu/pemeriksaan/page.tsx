@@ -39,19 +39,19 @@ export default async function HalamanPemeriksaan() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded border border-garis bg-permukaan px-4 py-3">
+        <div className="rounded-lg border border-garis bg-permukaan px-4 py-3">
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
             Jumlah tarif
           </p>
           <p className="mt-1 font-mono text-lg font-semibold">{rupiah(totalTarif)}</p>
         </div>
-        <div className="rounded border border-garis bg-permukaan px-4 py-3">
+        <div className="rounded-lg border border-garis bg-permukaan px-4 py-3">
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
             Jumlah biaya
           </p>
           <p className="mt-1 font-mono text-lg font-semibold">{rupiah(totalCost)}</p>
         </div>
-        <div className="rounded border border-garis bg-permukaan px-4 py-3">
+        <div className="rounded-lg border border-garis bg-permukaan px-4 py-3">
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
             Margin bila semua diambil
           </p>
@@ -63,7 +63,7 @@ export default async function HalamanPemeriksaan() {
 
       <FormTambah />
 
-      <div className="overflow-x-auto rounded border border-garis bg-permukaan">
+      <div className="overflow-x-auto rounded-xl shadow-lembut border border-garis bg-permukaan">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <thead>
             <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
@@ -80,7 +80,7 @@ export default async function HalamanPemeriksaan() {
                 <td className="border-b border-garis px-4 py-2">
                   {i.nama}
                   {!i.aktif && (
-                    <span className="ml-2 rounded bg-permukaan-2 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide">
+                    <span className="ml-2 rounded-lg bg-permukaan-2 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide">
                       Nonaktif
                     </span>
                   )}
@@ -107,7 +107,7 @@ export default async function HalamanPemeriksaan() {
                     />
                     <button
                       type="submit"
-                      className="rounded border border-garis px-2.5 py-1 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                      className="rounded-lg border border-garis px-2.5 py-1 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                     >
                       Simpan
                     </button>

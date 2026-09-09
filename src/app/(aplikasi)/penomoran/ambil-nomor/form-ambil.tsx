@@ -30,7 +30,7 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
 
   if (hasil.nomor) {
     return (
-      <div className="rounded border border-garis bg-permukaan p-6">
+      <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
           Nomor Anda
         </p>
@@ -41,19 +41,19 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
           <button
             type="button"
             onClick={() => salin(hasil.nomor!)}
-            className="rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
             {tersalin ? "Tersalin" : "Salin nomor"}
           </button>
           <a
             href="/penomoran/ambil-nomor"
-            className="rounded border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg border border-garis px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             Ambil nomor lagi
           </a>
           <a
             href="/penomoran/buku-nomor"
-            className="rounded px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >
             Lihat buku nomor
           </a>
@@ -71,7 +71,7 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
         {daftarJenis.map((j) => (
           <label
             key={j.id}
-            className="flex cursor-pointer items-center gap-3 rounded border border-garis bg-permukaan px-4 py-3 has-checked:border-hijau has-checked:bg-hijau-muda"
+            className="flex cursor-pointer items-center gap-3 rounded-lg border border-garis bg-permukaan px-4 py-3 has-checked:border-hijau has-checked:bg-hijau-muda"
           >
             <input
               type="radio"
@@ -99,7 +99,7 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
           name="perihal"
           required
           placeholder="Permohonan kerja sama layanan"
-          className="rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+          className="rounded-lg border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
         />
       </label>
 
@@ -110,7 +110,7 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
         <input
           name="ditujukan_kepada"
           placeholder="PT Sumber Sehat"
-          className="rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+          className="rounded-lg border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
         />
       </label>
 
@@ -122,12 +122,12 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
           name="tanggal_surat"
           type="date"
           defaultValue={new Date().toISOString().slice(0, 10)}
-          className="w-fit rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
+          className="w-fit rounded-lg border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
         />
       </label>
 
       {hasil.pesan && (
-        <p className="rounded border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
+        <p className="rounded-lg border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
           {hasil.pesan}
         </p>
       )}
@@ -136,7 +136,7 @@ export function FormAmbil({ daftarJenis }: { daftarJenis: Jenis[] }) {
         <button
           type="submit"
           disabled={sedang}
-          className="rounded bg-hijau px-5 py-2.5 font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-hijau px-5 py-2.5 font-medium text-white transition hover:opacity-90 disabled:opacity-60"
         >
           {sedang ? "Mengambil…" : "Ambil nomor"}
         </button>

@@ -17,7 +17,7 @@ export function FormRevisi({ id }: { id: number }) {
   const [hasil, kirim, sedang] = useActionState(unggahRevisi, hasilAwal);
 
   return (
-    <form action={kirim} className="flex flex-col gap-3 rounded border border-garis bg-permukaan p-5">
+    <form action={kirim} className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
       <input type="hidden" name="id" value={id} />
 
       <div>
@@ -50,7 +50,7 @@ export function FormRevisi({ id }: { id: number }) {
       <button
         type="submit"
         disabled={sedang}
-        className="w-fit rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+        className="w-fit rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
         {sedang ? "Mengunggah…" : "Unggah revisi"}
       </button>

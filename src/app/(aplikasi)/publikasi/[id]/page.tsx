@@ -65,7 +65,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
       </div>
 
       {d.isi === null ? (
-        <div className="rounded border border-garis bg-permukaan p-5">
+        <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
           <p className="font-medium">Dokumen ini berupa berkas.</p>
           <p className="mt-1 text-sm text-tinta-2">
             Berkas {d.berkas_nama} tidak bisa disunting di dalam peramban. Unduh
@@ -73,7 +73,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
           </p>
           <a
             href={`/publikasi/${d.id}/berkas`}
-            className="mt-4 inline-block rounded bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="mt-4 inline-block rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
             Unduh versi terakhir
           </a>
@@ -87,7 +87,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
       <FormTautan id={d.id} tautanAwal={d.tautan_docs} />
 
       {(revisi ?? []).length > 0 && (
-        <section className="rounded border border-garis bg-permukaan p-5">
+        <section className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
             Riwayat perubahan
           </h2>

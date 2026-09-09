@@ -101,7 +101,7 @@ export function Kalkulator({
                   key={p.id}
                   type="button"
                   onClick={() => pakaiPaket(p)}
-                  className="rounded border border-garis px-2.5 py-1 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                  className="rounded-lg border border-garis px-2.5 py-1 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                 >
                   {p.nama}
                 </button>
@@ -110,7 +110,7 @@ export function Kalkulator({
                 <button
                   type="button"
                   onClick={() => setDipilih([])}
-                  className="rounded px-2.5 py-1 text-xs text-tinta-3 hover:text-merah"
+                  className="rounded-lg px-2.5 py-1 text-xs text-tinta-3 hover:text-merah"
                 >
                   kosongkan
                 </button>
@@ -125,7 +125,7 @@ export function Kalkulator({
             className={`${gaya} text-sm`}
           />
 
-          <div className="overflow-x-auto rounded border border-garis bg-permukaan">
+          <div className="overflow-x-auto rounded-xl shadow-lembut border border-garis bg-permukaan">
             <table className="w-full min-w-[34rem] border-collapse text-sm">
               <thead>
                 <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
@@ -238,7 +238,7 @@ export function Kalkulator({
       </div>
 
       <aside className="w-full shrink-0 lg:w-96">
-        <div className="flex flex-col gap-4 rounded border border-garis bg-permukaan p-5 lg:sticky lg:top-6">
+        <div className="flex flex-col gap-4 rounded-xl shadow-lembut border border-garis bg-permukaan p-5 lg:sticky lg:top-6">
           <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
             Hitungan
           </h2>
@@ -309,7 +309,7 @@ export function Kalkulator({
             <Angka label="Total biaya" nilai={rupiah(h.totalBiaya)} warna="text-tinta-3" />
           </div>
 
-          <div className="rounded bg-permukaan-2 p-3">
+          <div className="rounded-lg bg-permukaan-2 p-3">
             <Angka
               label="Pendapatan bersih"
               keterangan="setelah PPN dikeluarkan"
@@ -326,7 +326,7 @@ export function Kalkulator({
           </div>
 
           {hasil.pesan && (
-            <p className="rounded border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
+            <p className="rounded-lg border-l-2 border-merah bg-permukaan-2 px-3 py-2 text-sm text-merah">
               {hasil.pesan}
             </p>
           )}
@@ -335,13 +335,13 @@ export function Kalkulator({
             <button
               type="submit"
               disabled={sedang || rincian.length === 0}
-              className="rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              className="rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
               {sedang ? "Menyimpan…" : "Simpan penawaran"}
             </button>
             <Link
               href="/mcu"
-              className="rounded border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+              className="rounded-lg border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
             >
               Batal
             </Link>

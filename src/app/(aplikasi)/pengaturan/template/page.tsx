@@ -33,7 +33,7 @@ export default async function HalamanTemplate() {
         Formulir resmi yang dipakai saat mengunduh dokumen komplain.
       </p>
 
-      <div className="mb-8 rounded border border-garis bg-permukaan p-5">
+      <div className="mb-8 rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
           Template terpasang
         </p>
@@ -56,7 +56,7 @@ export default async function HalamanTemplate() {
         <FormTemplate />
       </div>
 
-      <section className="rounded border border-garis bg-permukaan-2 p-5">
+      <section className="rounded-xl shadow-lembut border border-garis bg-permukaan-2 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
           Penanda yang dikenali
         </h2>

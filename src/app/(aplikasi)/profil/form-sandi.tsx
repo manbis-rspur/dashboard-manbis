@@ -64,7 +64,7 @@ export function FormSandi() {
       <button
         type="submit"
         disabled={sedang}
-        className="w-fit rounded bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+        className="w-fit rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
         {sedang ? "Menyimpan…" : "Ganti kata sandi"}
       </button>
