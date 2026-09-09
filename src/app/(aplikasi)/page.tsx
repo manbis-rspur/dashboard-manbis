@@ -96,7 +96,7 @@ export default async function Beranda() {
     { count },
     { count: bulanIni },
     { count: komplainTerbuka },
-    { count: berkasPublikasi },
+    { count: publikasiTertunda },
     { data: terakhir },
   ] = await Promise.all([
     supabase
@@ -115,7 +115,10 @@ export default async function Beranda() {
           .neq("status", "Selesai")
       : Promise.resolve({ count: null }),
     bolehPublikasi
-      ? supabase.from("publikasi").select("id", { count: "exact", head: true })
+      ? supabase
+          .from("publikasi")
+          .select("id", { count: "exact", head: true })
+          .neq("status_tinjauan", "Disetujui")
       : Promise.resolve({ count: null }),
     // Diurutkan menurut nomornya, bukan menurut waktu pengambilan.
     // "Nomor terakhir" berarti nomor tertinggi — dan waktu pengambilan
@@ -189,9 +192,9 @@ export default async function Beranda() {
         {bolehPublikasi && (
           <Angka
             ikon="publikasi"
-            nilai={berkasPublikasi ?? 0}
-            label="Arsip publikasi"
-            keterangan="dokumen tersimpan"
+            nilai={publikasiTertunda ?? 0}
+            label="Menunggu tinjauan"
+            keterangan="dokumen belum disetujui"
           />
         )}
       </section>

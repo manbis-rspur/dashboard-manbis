@@ -115,6 +115,16 @@ export function FormUnggah() {
         className={gaya}
       />
 
+      <label className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-[0.13em] text-tinta-3">
+          Ditunggu sampai
+        </span>
+        <input type="date" name="tenggat" className={gaya} />
+        <span className="text-xs text-tinta-3">
+          Boleh dikosongkan. Koordinator bisa mengubahnya nanti.
+        </span>
+      </label>
+
       {pesan && <p className="text-sm text-merah">{pesan}</p>}
       {berhasil && <p className="text-sm text-hijau">{berhasil}</p>}
 

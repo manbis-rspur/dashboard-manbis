@@ -104,6 +104,7 @@ export async function catatPublikasi(_s: Hasil, formData: FormData): Promise<Has
   }
 
   const ukuran = Number(formData.get("berkas_ukuran"));
+  const tenggat = String(formData.get("tenggat") ?? "").trim();
 
   const supabase = await createClient();
   const { error } = await supabase.from("publikasi").insert({
@@ -114,6 +115,7 @@ export async function catatPublikasi(_s: Hasil, formData: FormData): Promise<Has
     berkas_nama: jalur ? berkasNama || "dokumen" : null,
     berkas_ukuran: Number.isFinite(ukuran) && ukuran > 0 ? ukuran : null,
     tautan_docs: tautan || null,
+    tenggat: tenggat || null,
     diunggah_oleh: pengguna.id,
   });
 
@@ -330,4 +332,77 @@ export async function catatRevisi(_s: Hasil, formData: FormData): Promise<Hasil>
   revalidatePath("/publikasi");
   revalidatePath(`/publikasi/${id}`);
   return { pesan: null, berhasil: `Tersimpan sebagai versi ${revisi.versi}.` };
+}
+
+
+/**
+ * Menuliskan hasil bacaan Koordinator atas sebuah dokumen.
+ *
+ * Ini yang selama ini hilang: dokumen masuk arsip lalu berhenti,
+ * dan yang mengunggah tidak pernah tahu apakah sudah dipakai, masih
+ * ditunggu, atau perlu diperbaiki. Putusannya sengaja disimpan di
+ * barisan dokumennya sendiri, bukan di percakapan, supaya masih ada
+ * bulan depan saat ditanya lagi.
+ *
+ * Hanya pemegang izin 'publikasi' — Koordinator — yang boleh
+ * memutuskan. Yang mengunggah tidak menilai pekerjaannya sendiri.
+ */
+export async function simpanTinjauan(_s: Hasil, formData: FormData): Promise<Hasil> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+
+  if (!(await bolehAkses("publikasi"))) {
+    return { pesan: "Hanya Koordinator yang bisa memberi tindak lanjut.", berhasil: null };
+  }
+
+  const id = Number(formData.get("id"));
+  const status = String(formData.get("status_tinjauan") ?? "").trim();
+
+  if (!["Menunggu", "Perlu revisi", "Disetujui"].includes(status)) {
+    return { pesan: "Pilih dulu putusannya.", berhasil: null };
+  }
+
+  const catatan = String(formData.get("catatan_tinjauan") ?? "").trim();
+
+  // Dikembalikan tanpa alasan tidak bisa ditindaklanjuti siapa pun.
+  if (status === "Perlu revisi" && catatan === "") {
+    return {
+      pesan: "Tulis dulu apa yang perlu diperbaiki — tanpa itu yang mengunggah tidak tahu harus mengubah apa.",
+      berhasil: null,
+    };
+  }
+
+  const tenggat = String(formData.get("tenggat") ?? "").trim();
+
+  const supabase = await createClient();
+  const { data: tersentuh, error } = await supabase
+    .from("publikasi")
+    .update({
+      status_tinjauan: status,
+      catatan_tinjauan: catatan || null,
+      tenggat: tenggat || null,
+      ditinjau_oleh: pengguna.id,
+      ditinjau_pada: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
+  if (!tersentuh || tersentuh.length === 0) {
+    return { pesan: "Tidak ada yang tersimpan — akun Anda mungkin belum berhak.", berhasil: null };
+  }
+
+  revalidatePath("/publikasi");
+  revalidatePath(`/publikasi/${id}`);
+  revalidatePath("/");
+
+  return {
+    pesan: null,
+    berhasil:
+      status === "Perlu revisi"
+        ? "Dikembalikan dengan catatan. Yang mengunggah akan melihatnya."
+        : status === "Disetujui"
+          ? "Dokumen disetujui."
+          : "Dikembalikan ke status menunggu.",
+  };
 }

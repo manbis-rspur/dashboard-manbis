@@ -83,7 +83,9 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       .limit(BANYAK),
     supabase
       .from("publikasi")
-      .select("id, judul, jenis, diunggah_pada, diunggah_oleh, pengguna(nama)")
+      .select(
+        "id, judul, jenis, diunggah_pada, diunggah_oleh, status_tinjauan, catatan_tinjauan, ditinjau_pada, ditinjau_oleh, pengguna:diunggah_oleh(nama), peninjau:ditinjau_oleh(nama)",
+      )
       .order("diunggah_pada", { ascending: false })
       .limit(BANYAK),
     supabase
@@ -140,6 +142,22 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       tautan: `/publikasi/${p.id}`,
       olehSaya: p.diunggah_oleh === pengguna.id,
     });
+
+    // Putusan Koordinator adalah kabar tersendiri, bukan sekadar
+    // sifat dokumennya: yang mengunggah menunggu jawaban itu.
+    if (p.ditinjau_pada && p.status_tinjauan !== "Menunggu") {
+      daftar.push({
+        kunci: `tinjauan-${p.id}-${p.ditinjau_pada}`,
+        ikon: p.status_tinjauan === "Disetujui" ? "centang" : "peringatan",
+        judul: `${potong(p.judul, 45)} — ${p.status_tinjauan}`,
+        rincian: p.catatan_tinjauan
+          ? potong(p.catatan_tinjauan)
+          : `Ditinjau ${nama(p.peninjau) || "Koordinator"}`,
+        waktu: p.ditinjau_pada,
+        tautan: `/publikasi/${p.id}`,
+        olehSaya: p.ditinjau_oleh === pengguna.id,
+      });
+    }
   }
 
   for (const r of revisi ?? []) {

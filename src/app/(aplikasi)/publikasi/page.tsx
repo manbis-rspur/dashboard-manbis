@@ -14,6 +14,19 @@ const waktu = new Intl.DateTimeFormat("id-ID", {
   minute: "2-digit",
 });
 
+const tanggal = new Intl.DateTimeFormat("id-ID", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+/** Warna lencana putusan Koordinator. */
+function warnaStatus(status: string) {
+  if (status === "Disetujui") return "border-hijau bg-hijau-muda/60 text-hijau";
+  if (status === "Perlu revisi") return "border-oker bg-[#f6efe2] text-oker";
+  return "border-garis bg-permukaan-2 text-tinta-3";
+}
+
 function ukuran(bita: number | null) {
   if (!bita) return "";
   if (bita < 1024 * 1024) return `${Math.round(bita / 1024)} KB`;
@@ -32,7 +45,7 @@ export default async function HalamanPublikasi() {
   const { data } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, berkas_ukuran, tenggat, status_tinjauan, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
     )
     .order("diunggah_pada", { ascending: false })
     .limit(200);
@@ -82,6 +95,28 @@ export default async function HalamanPublikasi() {
                   </p>
                   {d.keterangan && (
                     <p className="mt-0.5 text-sm text-tinta-2">{d.keterangan}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-full border px-2.5 py-0.5 text-[0.7rem] font-semibold ${warnaStatus(
+                      d.status_tinjauan ?? "Menunggu",
+                    )}`}
+                  >
+                    {d.status_tinjauan ?? "Menunggu"}
+                  </span>
+                  {d.tenggat && (
+                    <span
+                      className={`text-[0.7rem] ${
+                        d.status_tinjauan !== "Disetujui" &&
+                        new Date(d.tenggat) < new Date(new Date().toDateString())
+                          ? "font-semibold text-merah"
+                          : "text-tinta-3"
+                      }`}
+                    >
+                      tenggat {tanggal.format(new Date(d.tenggat))}
+                    </span>
                   )}
                 </div>
 

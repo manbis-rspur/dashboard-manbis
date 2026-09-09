@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Penyunting } from "./penyunting";
 import { FormTautan } from "./form-tautan";
 import { FormRevisi } from "./form-revisi";
+import { PanelTinjauan } from "./panel-tinjauan";
 
 const waktu = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
@@ -19,7 +20,11 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
   const pengguna = await getPenggunaAktif();
   if (!pengguna) redirect("/login");
 
-  const berhak = (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
+  // Menilai adalah pekerjaan Koordinator; mengunggah pekerjaan Humas
+  // dan Digital Marketing. Yang mengunggah tidak menilai hasilnya
+  // sendiri.
+  const bolehMenilai = await bolehAkses("publikasi");
+  const berhak = bolehMenilai || (await bolehAkses("humas"));
   if (!berhak) redirect("/tanpa-akses");
 
   const { id } = await params;
@@ -28,7 +33,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
   const { data: d } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, tenggat, status_tinjauan, catatan_tinjauan, ditinjau_pada, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama), peninjau:ditinjau_oleh(nama)",
     )
     .eq("id", Number(id))
     .maybeSingle();
@@ -43,6 +48,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
 
   const pengunggah = Array.isArray(d.pengunggah) ? d.pengunggah[0] : d.pengunggah;
   const penyunting = Array.isArray(d.penyunting) ? d.penyunting[0] : d.penyunting;
+  const peninjau = Array.isArray(d.peninjau) ? d.peninjau[0] : d.peninjau;
 
   return (
     <div className="flex flex-col gap-7">
@@ -92,6 +98,16 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
       )}
 
       {d.isi === null && d.berkas_jalur && <FormRevisi id={d.id} />}
+
+      <PanelTinjauan
+        id={d.id}
+        status={d.status_tinjauan ?? "Menunggu"}
+        catatan={d.catatan_tinjauan}
+        tenggat={d.tenggat}
+        peninjau={peninjau?.nama ?? null}
+        ditinjauPada={d.ditinjau_pada}
+        bolehMenilai={bolehMenilai}
+      />
 
       <FormTautan id={d.id} tautanAwal={d.tautan_docs} />
 
