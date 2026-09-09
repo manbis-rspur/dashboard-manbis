@@ -28,7 +28,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
   const { data: d } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_nama, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, diunggah_pada, diubah_pada, pengunggah:diunggah_oleh(nama), penyunting:diubah_oleh(nama)",
     )
     .eq("id", Number(id))
     .maybeSingle();
@@ -64,8 +64,10 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
         {d.keterangan && <p className="mt-2 text-sm text-tinta-2">{d.keterangan}</p>}
       </div>
 
-      {d.isi === null ? (
-        <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
+      {d.isi !== null ? (
+        <Penyunting id={d.id} isiAwal={d.isi} />
+      ) : d.berkas_jalur ? (
+        <div className="rounded-xl border border-garis bg-permukaan p-5 shadow-lembut">
           <p className="font-medium">Dokumen ini berupa berkas.</p>
           <p className="mt-1 text-sm text-tinta-2">
             Berkas {d.berkas_nama} tidak bisa disunting di dalam peramban. Unduh
@@ -79,10 +81,17 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
           </a>
         </div>
       ) : (
-        <Penyunting id={d.id} isiAwal={d.isi} />
+        <div className="rounded-xl border border-garis bg-permukaan p-5 shadow-lembut">
+          <p className="font-medium">Dokumen ini tersimpan di Google Drive.</p>
+          <p className="mt-1 text-sm text-tinta-2">
+            Tidak ada berkas yang diunggah ke sini — isinya dibuka lewat tautan
+            di bawah. Perubahan yang dilakukan di sana tidak ikut tercatat pada
+            riwayat halaman ini.
+          </p>
+        </div>
       )}
 
-      {d.isi === null && <FormRevisi id={d.id} />}
+      {d.isi === null && d.berkas_jalur && <FormRevisi id={d.id} />}
 
       <FormTautan id={d.id} tautanAwal={d.tautan_docs} />
 

@@ -5,7 +5,7 @@ import { simpanTautanDocs } from "@/lib/publikasi-actions";
 import { hasilAwal } from "@/lib/hasil";
 
 /**
- * Menyimpan tautan Google Docs sebuah dokumen.
+ * Menyimpan tautan Google Docs atau Drive sebuah dokumen.
  *
  * Berkasnya tetap tinggal di Drive milik yang mengunggah; di sini
  * hanya alamatnya. Sengaja begitu — menyambungkan Drive API berarti
@@ -24,7 +24,7 @@ export function FormTautan({
   return (
     <section className="rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
       <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
-        Google Docs
+        Google Docs / Drive
       </h2>
 
       {tautanAwal && (
@@ -34,7 +34,7 @@ export function FormTautan({
           rel="noopener noreferrer"
           className="mt-3 inline-block rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
-          Buka di Google Docs
+          Buka di Google Docs / Drive
         </a>
       )}
 
@@ -45,7 +45,7 @@ export function FormTautan({
             name="tautan_docs"
             type="url"
             defaultValue={tautanAwal ?? ""}
-            placeholder="https://docs.google.com/document/d/…"
+            placeholder="https://docs.google.com/… atau https://drive.google.com/…"
             className="min-w-56 flex-1 rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda"
           />
           <button
@@ -61,9 +61,11 @@ export function FormTautan({
         {hasil.berhasil && <p className="text-sm text-hijau">{hasil.berhasil}</p>}
 
         <p className="text-xs text-tinta-3">
-          Taruh berkasnya di Google Drive, buka dengan Google Docs, lalu salin
-          alamat dari bilah alamat peramban. Suntingan yang dilakukan di sana
-          tidak ikut tercatat pada riwayat perubahan di halaman ini.
+          Taruh berkasnya di Google Drive — boleh dibuka dulu dengan Google
+          Docs, boleh juga tautan berkas Drive apa adanya — lalu salin
+          alamatnya dari bilah alamat peramban. Pastikan izin berbaginya
+          terbuka untuk yang perlu membacanya. Suntingan yang dilakukan di
+          sana tidak ikut tercatat pada riwayat perubahan di halaman ini.
         </p>
       </form>
     </section>

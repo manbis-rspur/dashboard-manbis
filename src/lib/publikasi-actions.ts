@@ -5,20 +5,77 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DITERIMA, jenisDiterima } from "@/lib/publikasi";
 import type { Hasil } from "@/lib/hasil";
 
-/** Jenis berkas yang diterima — dokumen jadi, bukan berkas kerja. */
-const DITERIMA = [".pdf", ".docx", ".doc", ".xlsx", ".png", ".jpg", ".jpeg"];
-const MAKS = 20 * 1024 * 1024;
 
 /**
- * Mengunggah satu berkas hasil ke arsip.
+ * Menyiapkan tempat untuk satu berkas, lalu menyerahkan izin
+ * sekali-pakai supaya peramban mengunggahnya langsung.
  *
- * Berkasnya lewat server memakai kunci penuh, bukan diunggah
- * langsung dari peramban — dengan begitu wadah 'dokumen' tetap
- * tertutup rapat dan tidak perlu ada izin unggah terbuka di sana.
+ * Dulu berkasnya dititipkan lewat server action, dan itulah yang
+ * membuat unggahan gagal: sebuah server action hanya menerima
+ * kiriman 1 MB, dan di Vercel batas kerasnya 4,5 MB — jauh di bawah
+ * ukuran dokumen Word atau PDF yang sebenarnya. Dengan izin
+ * sekali-pakai, berkasnya berjalan dari peramban langsung ke
+ * penyimpanan tanpa melewati server sama sekali, jadi batas itu
+ * tidak berlaku, dan wadah 'dokumen' tetap tertutup rapat karena
+ * izinnya hanya berlaku untuk satu jalur dan satu kali pakai.
  */
-export async function unggahPublikasi(_s: Hasil, formData: FormData): Promise<Hasil> {
+export type IzinUnggah =
+  | { jalur: string; token: string; pesan: null }
+  | { jalur: null; token: null; pesan: string };
+
+export async function siapkanUnggahan(
+  namaBerkas: string,
+  untuk: "arsip" | "revisi" = "arsip",
+): Promise<IzinUnggah> {
+  const tolak = (pesan: string): IzinUnggah => ({ jalur: null, token: null, pesan });
+
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return tolak("Sesi Anda sudah berakhir. Masuk lagi.");
+
+  // Mengunggah dokumen baru adalah pekerjaan Humas dan Digital
+  // Marketing. Mengunggah perbaikan juga hak Koordinator — memang
+  // dialah yang mengoreksi.
+  const berhak =
+    untuk === "revisi"
+      ? (await bolehAkses("publikasi")) || (await bolehAkses("humas"))
+      : await bolehAkses("humas");
+
+  if (!berhak) return tolak("Anda tidak berhak mengunggah berkas ke sini.");
+
+  if (!jenisDiterima(namaBerkas)) {
+    return tolak(`Jenis berkas belum didukung. Yang diterima: ${DITERIMA.join(", ")}.`);
+  }
+
+  // Nama berkas dibersihkan sebelum jadi bagian jalur: spasi dan
+  // tanda baca asing membuat alamat berkasnya sulit dipakai lagi.
+  const bersih = namaBerkas.replace(/[^\w.\-]+/g, "-").slice(-80);
+  const jalur = `publikasi/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${bersih}`;
+
+  const { data, error } = await createAdminClient()
+    .storage.from("dokumen")
+    .createSignedUploadUrl(jalur);
+
+  if (error || !data) {
+    return tolak(`Gagal menyiapkan unggahan: ${error?.message ?? "tidak diketahui"}`);
+  }
+
+  return { jalur: data.path, token: data.token, pesan: null };
+}
+
+/**
+ * Mencatat satu dokumen ke arsip.
+ *
+ * Berkasnya — kalau ada — sudah lebih dulu naik ke penyimpanan lewat
+ * izin sekali-pakai di atas. Yang lewat sini cuma keterangannya, jadi
+ * ringan dan tidak pernah menabrak batas ukuran kiriman.
+ *
+ * Boleh tanpa berkas asalkan ada tautan Google Docs atau Drive:
+ * sebagian dokumen memang lebih masuk akal tinggal di Drive.
+ */
+export async function catatPublikasi(_s: Hasil, formData: FormData): Promise<Hasil> {
   const pengguna = await getPenggunaAktif();
   if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
   if (!(await bolehAkses("humas"))) {
@@ -28,52 +85,42 @@ export async function unggahPublikasi(_s: Hasil, formData: FormData): Promise<Ha
   const judul = String(formData.get("judul") ?? "").trim();
   if (!judul) return { pesan: "Judul dokumen harus diisi.", berhasil: null };
 
-  const berkas = formData.get("berkas");
-  if (!(berkas instanceof File) || berkas.size === 0) {
-    return { pesan: "Pilih dulu berkasnya.", berhasil: null };
-  }
+  const jalur = String(formData.get("jalur") ?? "").trim();
+  const berkasNama = String(formData.get("berkas_nama") ?? "").trim();
+  const tautan = String(formData.get("tautan_docs") ?? "").trim();
 
-  const nama = berkas.name.toLowerCase();
-  if (!DITERIMA.some((akhiran) => nama.endsWith(akhiran))) {
+  if (!jalur && !tautan) {
     return {
-      pesan: `Jenis berkas belum didukung. Yang diterima: ${DITERIMA.join(", ")}.`,
+      pesan: "Pilih berkasnya, atau tempel tautan Google Docs/Drive-nya.",
       berhasil: null,
     };
   }
 
-  if (berkas.size > MAKS) {
-    return { pesan: "Berkasnya terlalu besar. Maksimal 20 MB.", berhasil: null };
+  if (tautan !== "" && !tautan.startsWith("https://")) {
+    return {
+      pesan: "Tautannya harus dimulai dengan https:// — salin apa adanya dari bilah alamat.",
+      berhasil: null,
+    };
   }
 
-  const db = createAdminClient();
-  const jalur = `publikasi/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${berkas.name}`;
-
-  const { error: galatUnggah } = await db.storage
-    .from("dokumen")
-    .upload(jalur, await berkas.arrayBuffer(), {
-      contentType: berkas.type || "application/octet-stream",
-      upsert: false,
-    });
-
-  if (galatUnggah) {
-    return { pesan: `Gagal mengunggah: ${galatUnggah.message}`, berhasil: null };
-  }
+  const ukuran = Number(formData.get("berkas_ukuran"));
 
   const supabase = await createClient();
   const { error } = await supabase.from("publikasi").insert({
     judul,
     keterangan: String(formData.get("keterangan") ?? "").trim() || null,
     jenis: String(formData.get("jenis") ?? "Lainnya"),
-    berkas_jalur: jalur,
-    berkas_nama: berkas.name,
-    berkas_ukuran: berkas.size,
+    berkas_jalur: jalur || null,
+    berkas_nama: jalur ? berkasNama || "dokumen" : null,
+    berkas_ukuran: Number.isFinite(ukuran) && ukuran > 0 ? ukuran : null,
+    tautan_docs: tautan || null,
     diunggah_oleh: pengguna.id,
   });
 
   if (error) {
     // Berkasnya sudah terlanjur naik tapi catatannya gagal —
     // dibuang lagi supaya tidak ada berkas yatim di penyimpanan.
-    await db.storage.from("dokumen").remove([jalur]);
+    if (jalur) await createAdminClient().storage.from("dokumen").remove([jalur]);
     return { pesan: `Gagal dicatat: ${error.message}`, berhasil: null };
   }
 
@@ -214,14 +261,17 @@ export async function simpanTautanDocs(_s: Hasil, formData: FormData): Promise<H
 }
 
 /**
- * Mengunggah revisi berupa berkas.
+ * Mencatat revisi berupa berkas.
  *
  * Berkas lama TIDAK ditimpa: yang baru disimpan sebagai versi
  * tersendiri, dan barisan dokumen diarahkan ke versi terakhir.
  * Dengan begitu naskah asli tetap bisa dibuka, dan terlihat apa
  * yang berubah di tiap langkah.
+ *
+ * Berkasnya sendiri sudah naik lebih dulu dari peramban lewat izin
+ * sekali-pakai; yang lewat sini hanya keterangannya.
  */
-export async function unggahRevisi(_s: Hasil, formData: FormData): Promise<Hasil> {
+export async function catatRevisi(_s: Hasil, formData: FormData): Promise<Hasil> {
   const pengguna = await getPenggunaAktif();
   if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
 
@@ -229,38 +279,14 @@ export async function unggahRevisi(_s: Hasil, formData: FormData): Promise<Hasil
   if (!berhak) return { pesan: "Anda tidak berhak mengunggah revisi.", berhasil: null };
 
   const id = Number(formData.get("id"));
-  const berkas = formData.get("berkas");
+  const jalur = String(formData.get("jalur") ?? "").trim();
+  const berkasNama = String(formData.get("berkas_nama") ?? "").trim() || "dokumen";
+  const ukuran = Number(formData.get("berkas_ukuran"));
+  const besar = Number.isFinite(ukuran) && ukuran > 0 ? ukuran : null;
 
-  if (!(berkas instanceof File) || berkas.size === 0) {
-    return { pesan: "Pilih dulu berkas revisinya.", berhasil: null };
-  }
-
-  const nama = berkas.name.toLowerCase();
-  if (!DITERIMA.some((akhiran) => nama.endsWith(akhiran))) {
-    return {
-      pesan: `Jenis berkas belum didukung. Yang diterima: ${DITERIMA.join(", ")}.`,
-      berhasil: null,
-    };
-  }
-
-  if (berkas.size > MAKS) {
-    return { pesan: "Berkasnya terlalu besar. Maksimal 20 MB.", berhasil: null };
-  }
+  if (!jalur) return { pesan: "Pilih dulu berkas revisinya.", berhasil: null };
 
   const db = createAdminClient();
-  const jalur = `publikasi/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${berkas.name}`;
-
-  const { error: galatUnggah } = await db.storage
-    .from("dokumen")
-    .upload(jalur, await berkas.arrayBuffer(), {
-      contentType: berkas.type || "application/octet-stream",
-      upsert: false,
-    });
-
-  if (galatUnggah) {
-    return { pesan: `Gagal mengunggah: ${galatUnggah.message}`, berhasil: null };
-  }
-
   const supabase = await createClient();
 
   const { data: revisi, error: galatRevisi } = await supabase
@@ -268,8 +294,8 @@ export async function unggahRevisi(_s: Hasil, formData: FormData): Promise<Hasil
     .insert({
       publikasi_id: id,
       berkas_jalur: jalur,
-      berkas_nama: berkas.name,
-      berkas_ukuran: berkas.size,
+      berkas_nama: berkasNama,
+      berkas_ukuran: besar,
       catatan: String(formData.get("catatan") ?? "").trim() || null,
       oleh: pengguna.id,
     })
@@ -287,8 +313,8 @@ export async function unggahRevisi(_s: Hasil, formData: FormData): Promise<Hasil
     .from("publikasi")
     .update({
       berkas_jalur: jalur,
-      berkas_nama: berkas.name,
-      berkas_ukuran: berkas.size,
+      berkas_nama: berkasNama,
+      berkas_ukuran: besar,
       diubah_oleh: pengguna.id,
       diubah_pada: new Date().toISOString(),
     })

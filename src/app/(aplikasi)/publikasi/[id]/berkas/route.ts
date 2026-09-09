@@ -30,6 +30,14 @@ export async function GET(
 
   if (!data) return new NextResponse("Dokumen tidak ditemukan.", { status: 404 });
 
+  // Sebagian dokumen memang hanya berupa tautan Drive atau teks yang
+  // disunting di tempat — tidak ada berkas untuk diunduh.
+  if (!data.berkas_jalur) {
+    return new NextResponse("Dokumen ini tidak punya berkas untuk diunduh.", {
+      status: 404,
+    });
+  }
+
   const { data: isi, error } = await createAdminClient()
     .storage.from("dokumen")
     .download(data.berkas_jalur);

@@ -1,23 +1,68 @@
 "use client";
 
-import { useActionState } from "react";
-import { unggahRevisi } from "@/lib/publikasi-actions";
-import { hasilAwal } from "@/lib/hasil";
+import { useState, useTransition } from "react";
+import { catatRevisi, siapkanUnggahan } from "@/lib/publikasi-actions";
+import { unggahLewatIzin } from "@/lib/unggah-berkas";
+import { ACCEPT, ukuranRapi } from "@/lib/publikasi";
 
 const gaya =
-  "rounded border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
+  "rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
 
 /**
  * Mengunggah berkas revisi.
  *
  * Berkas lama tidak ditimpa — yang baru jadi versi berikutnya, dan
  * versi lama tetap bisa diunduh dari riwayat di bawah.
+ *
+ * Sama seperti unggahan dokumen baru, berkasnya naik dari peramban
+ * langsung ke penyimpanan supaya tidak terhalang batas ukuran
+ * kiriman server action.
  */
 export function FormRevisi({ id }: { id: number }) {
-  const [hasil, kirim, sedang] = useActionState(unggahRevisi, hasilAwal);
+  const [pesan, setPesan] = useState<string | null>(null);
+  const [berhasil, setBerhasil] = useState<string | null>(null);
+  const [tahap, setTahap] = useState<string | null>(null);
+  const [sedang, mulai] = useTransition();
+
+  async function kirim(formData: FormData) {
+    setPesan(null);
+    setBerhasil(null);
+
+    const berkas = formData.get("berkas");
+    if (!(berkas instanceof File) || berkas.size === 0) {
+      setPesan("Pilih dulu berkas revisinya.");
+      return;
+    }
+
+    setTahap(`Mengunggah ${ukuranRapi(berkas.size)}…`);
+    const naik = await unggahLewatIzin(berkas, (nama) =>
+      siapkanUnggahan(nama, "revisi"),
+    );
+    setTahap(null);
+
+    if (naik.jalur === null) {
+      setPesan(naik.pesan);
+      return;
+    }
+
+    formData.delete("berkas");
+    formData.set("jalur", naik.jalur);
+    formData.set("berkas_nama", berkas.name);
+    formData.set("berkas_ukuran", String(berkas.size));
+
+    setTahap("Mencatat revisi…");
+    const hasil = await catatRevisi({ pesan: null, berhasil: null }, formData);
+    setTahap(null);
+
+    setPesan(hasil.pesan);
+    setBerhasil(hasil.berhasil);
+  }
 
   return (
-    <form action={kirim} className="flex flex-col gap-3 rounded-xl shadow-lembut border border-garis bg-permukaan p-5">
+    <form
+      action={(formData) => mulai(() => kirim(formData))}
+      className="flex flex-col gap-3 rounded-xl border border-garis bg-permukaan p-5 shadow-lembut"
+    >
       <input type="hidden" name="id" value={id} />
 
       <div>
@@ -34,7 +79,7 @@ export function FormRevisi({ id }: { id: number }) {
         type="file"
         name="berkas"
         required
-        accept=".pdf,.docx,.doc,.xlsx,.png,.jpg,.jpeg"
+        accept={ACCEPT}
         className={`${gaya} file:mr-3 file:rounded file:border-0 file:bg-permukaan-2 file:px-3 file:py-1.5 file:text-sm file:font-medium`}
       />
 
@@ -44,15 +89,15 @@ export function FormRevisi({ id }: { id: number }) {
         className={gaya}
       />
 
-      {hasil.pesan && <p className="text-sm text-merah">{hasil.pesan}</p>}
-      {hasil.berhasil && <p className="text-sm text-hijau">{hasil.berhasil}</p>}
+      {pesan && <p className="text-sm text-merah">{pesan}</p>}
+      {berhasil && <p className="text-sm text-hijau">{berhasil}</p>}
 
       <button
         type="submit"
         disabled={sedang}
         className="w-fit rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
-        {sedang ? "Mengunggah…" : "Unggah revisi"}
+        {sedang ? (tahap ?? "Menyimpan…") : "Unggah revisi"}
       </button>
     </form>
   );

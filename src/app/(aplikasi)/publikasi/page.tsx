@@ -32,7 +32,7 @@ export default async function HalamanPublikasi() {
   const { data } = await supabase
     .from("publikasi")
     .select(
-      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
+      "id, judul, keterangan, jenis, isi, tautan_docs, berkas_jalur, berkas_nama, berkas_ukuran, diunggah_pada, diubah_pada, pengguna:diunggah_oleh(nama)",
     )
     .order("diunggah_pada", { ascending: false })
     .limit(200);
@@ -92,11 +92,11 @@ export default async function HalamanPublikasi() {
                     rel="noopener noreferrer"
                     className="rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
                   >
-                    Google Docs
+                    Docs / Drive
                   </a>
                 )}
 
-                {d.isi === null && (
+                {d.berkas_jalur && (
                   <a
                     href={`/publikasi/${d.id}/berkas`}
                     className="rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
