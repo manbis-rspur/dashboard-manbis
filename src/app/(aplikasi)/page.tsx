@@ -119,15 +119,19 @@ export default async function Beranda() {
           .select("id", { count: "exact", head: true })
           .neq("status_tinjauan", "Disetujui")
       : Promise.resolve({ count: null }),
-    // Diurutkan menurut nomornya, bukan menurut waktu pengambilan.
-    // "Nomor terakhir" berarti nomor tertinggi — dan waktu pengambilan
-    // tidak bisa diandalkan untuk itu: nomor pindahan dari buku lama
-    // memakai tanggal suratnya, yang sebagian keliru di sumbernya.
+    // Diurutkan menurut waktu pengambilan, sama seperti buku nomor.
+    //
+    // Dulu diurutkan menurut angka nomornya, karena waktu pengambilan
+    // hasil pindahan dari buku lama sempat seragam dan tidak bisa
+    // dipakai. Tanggalnya sudah dibetulkan, dan mengurutkan menurut
+    // angka justru menyesatkan sekarang: Surat Keluar dan PKRS punya
+    // deret masing-masing, sehingga PKRS yang baru diambil pagi ini
+    // kalah oleh Surat Keluar berangka lebih besar dari bulan lalu.
     supabase
       .from("nomor")
       .select("nomor_lengkap, perihal, tanggal_surat, pengguna(nama)")
-      .order("tahun", { ascending: false })
-      .order("urutan", { ascending: false })
+      .order("diambil_pada", { ascending: false })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle(),
   ]);

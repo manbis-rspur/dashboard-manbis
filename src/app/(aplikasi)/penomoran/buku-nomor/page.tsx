@@ -4,6 +4,7 @@ type Baris = {
   id: number;
   nomor_lengkap: string;
   tanggal_surat: string;
+  diambil_pada: string;
   perihal: string;
   ditujukan_kepada: string | null;
   status: string;
@@ -28,11 +29,23 @@ export default async function HalamanBukuNomor() {
   const { data } = await supabase
     .from("nomor")
     .select(
-      "id, nomor_lengkap, tanggal_surat, perihal, ditujukan_kepada, status, jenis_dokumen(nama), pengguna(nama)",
+      "id, nomor_lengkap, tanggal_surat, diambil_pada, perihal, ditujukan_kepada, status, jenis_dokumen(nama), pengguna(nama)",
     )
-    .order("tahun", { ascending: false })
-    .order("urutan", { ascending: false })
-    .limit(200);
+    // Diurutkan menurut waktu pengambilan, bukan menurut nomornya.
+    //
+    // Surat Keluar dan PKRS punya deret nomornya masing-masing, jadi
+    // mengurutkan menurut angka urutan membuat keduanya berselang-
+    // seling: PKRS terbaru bisa terkubur puluhan baris di bawah,
+    // sejajar dengan Surat Keluar yang angkanya kebetulan sama
+    // padahal diambil berbulan-bulan sebelumnya.
+    //
+    // Nomor pindahan dari buku lama memakai tanggal suratnya sebagai
+    // waktu pengambilan, jadi urutannya tetap masuk akal walaupun
+    // aslinya tidak pernah lewat aplikasi ini. Untuk yang tanggalnya
+    // sama, id yang menentukan — yang tercatat belakangan di atas.
+    .order("diambil_pada", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(300);
 
   const baris = (data ?? []) as unknown as Baris[];
 
@@ -40,7 +53,7 @@ export default async function HalamanBukuNomor() {
     <div>
       <h1 className="text-2xl font-semibold tracking-tight">Buku Nomor</h1>
       <p className="mt-1 mb-7 text-tinta-2">
-        Seluruh nomor yang pernah diambil unit manbis.
+        Seluruh nomor yang pernah diambil unit manbis, yang terbaru di atas.
       </p>
 
       {baris.length === 0 ? (
@@ -57,7 +70,7 @@ export default async function HalamanBukuNomor() {
               <tr className="bg-permukaan-2 text-left text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                 <th className="border-b border-garis px-4 py-2.5">Nomor</th>
                 <th className="border-b border-garis px-4 py-2.5">Jenis</th>
-                <th className="border-b border-garis px-4 py-2.5">Tanggal</th>
+                <th className="border-b border-garis px-4 py-2.5">Tanggal surat</th>
                 <th className="border-b border-garis px-4 py-2.5">Perihal</th>
                 <th className="border-b border-garis px-4 py-2.5">Pengambil</th>
               </tr>
@@ -80,6 +93,16 @@ export default async function HalamanBukuNomor() {
                     </td>
                     <td className="border-b border-garis px-4 py-2.5 whitespace-nowrap">
                       {tanggalPanjang.format(new Date(b.tanggal_surat))}
+                      {/* Waktu pengambilan hanya disebut kalau memang
+                          berbeda dari tanggal suratnya — kalau tidak,
+                          barisnya cuma jadi ramai tanpa menambah apa
+                          pun, dan justru itu yang menjelaskan urutan
+                          daftar ini. */}
+                      {b.diambil_pada.slice(0, 10) !== b.tanggal_surat && (
+                        <span className="block text-xs text-tinta-3">
+                          diambil {tanggalPanjang.format(new Date(b.diambil_pada))}
+                        </span>
+                      )}
                     </td>
                     <td className="border-b border-garis px-4 py-2.5">
                       {b.perihal}
