@@ -109,7 +109,11 @@ export default async function HalamanDetailKomplain({
               <Baris label="Kontak pasien" nilai={k.pasien_hp} />
               <Baris label="Alamat pasien" nilai={k.pasien_alamat} />
               <Baris label="Jalur / media" nilai={`${k.jalur_pelaporan} · ${k.media_pelaporan}`} />
-              <Baris label="Kategori / sumber" nilai={`${k.kategori_masalah} · ${k.sumber_pelaporan}`} />
+              {/* Dipisah jadi dua baris sejak kategori boleh lebih
+                  dari satu — digabung satu baris, koma antar kategori
+                  dan titik pemisah jadi sulit dibedakan. */}
+              <Baris label="Kategori masalah" nilai={k.kategori_masalah} />
+              <Baris label="Sumber pelaporan" nilai={k.sumber_pelaporan} />
               <Baris label="Kepuasan awal" nilai={k.kepuasan_awal} />
             </dl>
 

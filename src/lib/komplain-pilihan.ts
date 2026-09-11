@@ -58,3 +58,29 @@ export const KOMITE = [
 
 /** Ambang tanggapan yang dipakai untuk menilai SLA. */
 export const SLA_JAM = 24;
+
+
+/**
+ * Kategori masalah boleh lebih dari satu.
+ *
+ * Disimpan tetap sebagai satu tulisan yang dipisah koma, bukan
+ * kolom larik tersendiri. Alasannya bukan malas: kolomnya sudah
+ * berisi ratusan komplain lama yang bernilai tunggal, dan bentuk
+ * ini membacanya apa adanya — satu kategori lama terbaca sebagai
+ * daftar berisi satu. Tidak ada yang perlu dipindahkan, tidak ada
+ * yang bisa tertinggal setengah jalan.
+ *
+ * Kedua fungsi ini satu-satunya tempat aturannya ditulis, supaya
+ * yang menyimpan dan yang membaca tidak pernah berbeda tafsir.
+ */
+export function gabungKategori(pilihan: string[]): string {
+  const bersih = pilihan.map((k) => k.trim()).filter((k) => k !== "");
+  return [...new Set(bersih)].join(", ");
+}
+
+export function pecahKategori(nilai: string | null | undefined): string[] {
+  return (nilai ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k !== "");
+}

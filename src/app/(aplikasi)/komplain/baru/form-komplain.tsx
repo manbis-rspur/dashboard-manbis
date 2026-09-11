@@ -139,17 +139,36 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
 
       <section className="flex flex-col gap-4">
         <Judul anak="Isi pengaduan" />
+        {/* Kotak centang, bukan daftar pilih: satu komplain sering
+            menyentuh lebih dari satu hal sekaligus — pelayanan yang
+            lambat karena alatnya rusak, misalnya. Memaksa memilih
+            satu berarti separuh keterangannya hilang sejak awal. */}
+        <fieldset className="flex flex-col gap-1.5">
+          <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-tinta-3">
+            Kategori masalah <span className="text-merah">*</span>
+            <span className="ml-2 font-normal normal-case tracking-normal text-tinta-3">
+              boleh lebih dari satu
+            </span>
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {KATEGORI.map((k) => (
+              <label
+                key={k}
+                className="flex items-center gap-2.5 rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm hover:bg-permukaan-2"
+              >
+                <input
+                  type="checkbox"
+                  name="kategori_masalah"
+                  value={k}
+                  className="accent-hijau"
+                />
+                {k}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="grid gap-4 sm:grid-cols-2">
-          <Label
-            judul="Kategori masalah"
-            wajib
-            anak={
-              <select name="kategori_masalah" required defaultValue="" className={gaya}>
-                <option value="" disabled>— Pilih kategori —</option>
-                {KATEGORI.map((k) => <option key={k}>{k}</option>)}
-              </select>
-            }
-          />
           <Label
             judul="Sumber pelaporan"
             wajib
@@ -160,13 +179,6 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
               </select>
             }
           />
-          <div className="sm:col-span-2">
-            <Label
-              judul="Detail komplain"
-              wajib
-              anak={<textarea name="detail_masalah" required rows={6} className={`${gaya} w-full`} />}
-            />
-          </div>
           <Label
             judul="Tingkat kepuasan awal"
             anak={
@@ -176,6 +188,13 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
               </select>
             }
           />
+          <div className="sm:col-span-2">
+            <Label
+              judul="Detail komplain"
+              wajib
+              anak={<textarea name="detail_masalah" required rows={6} className={`${gaya} w-full`} />}
+            />
+          </div>
         </div>
       </section>
 

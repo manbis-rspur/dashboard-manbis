@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { STATUS, GRADING } from "@/lib/komplain-pilihan";
+import { STATUS, GRADING, pecahKategori } from "@/lib/komplain-pilihan";
 
 export type BarisKomplain = {
   id: number;
@@ -136,8 +136,20 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
                     {b.pasien}
                     <span className="block text-xs text-tinta-3">dilaporkan {b.pelapor}</span>
                   </td>
-                  <td className="border-b border-garis px-4 py-2.5 whitespace-nowrap text-tinta-2">
-                    {b.kategori}
+                  {/* Kategorinya bisa lebih dari satu; ditampilkan
+                      sebagai lencana terpisah supaya terbaca sekilas,
+                      dan tanpa nowrap supaya tidak melebarkan tabel. */}
+                  <td className="border-b border-garis px-4 py-2.5">
+                    <span className="flex flex-wrap gap-1">
+                      {pecahKategori(b.kategori).map((k) => (
+                        <span
+                          key={k}
+                          className="rounded-full bg-permukaan-2 px-2 py-0.5 text-xs text-tinta-2"
+                        >
+                          {k}
+                        </span>
+                      ))}
+                    </span>
                   </td>
                   <td className="border-b border-garis px-4 py-2.5">
                     <span className={`rounded px-2 py-0.5 text-xs font-semibold ${warnaStatus(b.status)}`}>

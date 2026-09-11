@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { bacaIdentitas } from "@/lib/identitas";
+import { pecahKategori } from "@/lib/komplain-pilihan";
 import { PicuCetak } from "./picu-cetak";
 import { gayaCetak } from "./gaya";
 
@@ -80,7 +81,12 @@ export default async function HalamanCetak({ params }: PageProps<"/komplain/[id]
   const tanggap = k.waktu_ditanggapi ? new Date(k.waktu_ditanggapi) : null;
   const komite = k.tgl_lapor_komite ? new Date(k.tgl_lapor_komite) : null;
 
-  const kategoriLain = !KATEGORI_KOTAK.includes(k.kategori_masalah);
+  // Kategori bisa lebih dari satu, tersimpan dipisah koma. Yang ada
+  // kotaknya dicentang; sisanya ditulis di baris Lain-Lain.
+  const kategori = pecahKategori(k.kategori_masalah);
+  const kategoriLainnya = kategori.filter(
+    (n) => !(KATEGORI_KOTAK as readonly string[]).includes(n),
+  );
   const sumberLain = !SUMBER_KOTAK.includes(k.sumber_pelaporan);
   const eskalasi = k.perlu_eskalasi === true;
   const isi = (nilai: string | null) => (nilai && nilai.trim() !== "" ? nilai : "");
@@ -127,14 +133,12 @@ export default async function HalamanCetak({ params }: PageProps<"/komplain/[id]
               <td colSpan={2} className="sel-tengah">
                 <div className="baris-pilihan">
                   {KATEGORI_KOTAK.map((n) => (
-                    <Kotak key={n} isi={k.kategori_masalah === n} label={n} />
+                    <Kotak key={n} isi={kategori.includes(n)} label={n} />
                   ))}
                 </div>
                 <div className="baris-pilihan">
-                  <Kotak isi={kategoriLain} label="Lain-Lain" />
-                  <span className="garis-isi">
-                    {kategoriLain ? k.kategori_masalah : ""}
-                  </span>
+                  <Kotak isi={kategoriLainnya.length > 0} label="Lain-Lain" />
+                  <span className="garis-isi">{kategoriLainnya.join(", ")}</span>
                 </div>
               </td>
             </tr>
