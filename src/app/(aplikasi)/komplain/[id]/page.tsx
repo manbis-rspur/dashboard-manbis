@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { wajibAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { SLA_JAM } from "@/lib/komplain-pilihan";
+import { keIsianWaktu, sekarangIsianWaktu } from "@/lib/waktu";
 import { FormTindakLanjut, type NilaiAwal } from "./form-tindak-lanjut";
 
 const waktuPanjang = new Intl.DateTimeFormat("id-ID", {
@@ -54,6 +55,8 @@ export default async function HalamanDetailKomplain({
 
   const awal: NilaiAwal = {
     id: k.id,
+    waktuDitanggapi: keIsianWaktu(k.waktu_ditanggapi),
+    waktuSekarang: sekarangIsianWaktu(),
     pasienNoRm: k.pasien_no_rm ?? "",
     penerimaNama: k.penerima_nama ?? "",
     penerimaUnit: k.penerima_unit ?? "",
@@ -171,6 +174,21 @@ export default async function HalamanDetailKomplain({
               Berisi data terakhir yang sudah disimpan, disusun persis mengikuti
               formulir resmi RSPUR.
             </p>
+
+            {/* Formulir cetak membaca yang tersimpan, bukan yang
+                sedang diketik di sebelah. Tanpa peringatan ini,
+                tombol cetak yang berdiri di samping formulir tindak
+                lanjut mudah ditekan lebih dulu — dan yang keluar
+                kertas dengan bagian jawaban kosong, tanpa ada yang
+                memberi tahu kenapa. */}
+            {!k.waktu_ditanggapi && (
+              <p className="mb-4 rounded-lg border-l-2 border-oker bg-[#f6efe2] px-3 py-2 text-sm text-tinta-2">
+                Tindak lanjut belum pernah disimpan. Nama penerima laporan,
+                jawaban, dan hasil penyelesaian akan keluar kosong di formulir
+                cetak — isi dulu formulir di sebelah, lalu tekan{" "}
+                <strong>Simpan tindak lanjut</strong>.
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <a
                 href={`/komplain/${k.id}/cetak`}

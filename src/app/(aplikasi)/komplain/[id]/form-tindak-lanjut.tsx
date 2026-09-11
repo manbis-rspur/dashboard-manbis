@@ -11,6 +11,10 @@ const gaya =
 
 export type NilaiAwal = {
   id: number;
+  /** Bentuk isian tanggal-jam WIB; kosong bila belum pernah ditanggapi. */
+  waktuDitanggapi: string;
+  /** Waktu sekarang, dihitung peladen — lihat catatan di bawah. */
+  waktuSekarang: string;
   pasienNoRm: string;
   penerimaNama: string;
   penerimaUnit: string;
@@ -56,6 +60,27 @@ export function FormTindakLanjut({ awal }: { awal: NilaiAwal }) {
   return (
     <form action={kirim} className="flex flex-col gap-5">
       <input type="hidden" name="id" value={awal.id} />
+
+      {/* Tanggapan bisa saja sudah diberikan lewat telepon kemarin
+          dan baru sempat dicatat hari ini. Jam sistem tidak tahu itu,
+          jadi yang diketik petugas yang dipakai — termasuk oleh
+          hitungan SLA dan formulir cetak.
+
+          Nilai bawaannya dihitung peladen, bukan di sini: kalau
+          dihitung dua kali, angka yang digambar peladen dan yang
+          digambar peramban bisa berbeda semenit, dan React
+          mengosongkan isiannya karena dianggap tidak cocok. */}
+      <Label
+        judul="Waktu ditanggapi"
+        anak={
+          <input
+            name="waktu_ditanggapi"
+            type="datetime-local"
+            defaultValue={awal.waktuDitanggapi || awal.waktuSekarang}
+            className={gaya}
+          />
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Label judul="No. rekam medis" anak={<input name="pasien_no_rm" defaultValue={awal.pasienNoRm} className={gaya} />} />

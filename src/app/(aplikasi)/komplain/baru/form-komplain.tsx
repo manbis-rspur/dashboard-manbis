@@ -43,12 +43,24 @@ function Judul({ anak }: { anak: string }) {
  * cara yang benar adalah memasang ulang formulirnya — bukan memuat
  * ulang seluruh halaman, yang membuang waktu petugas.
  */
-export function FormKomplain() {
+export function FormKomplain({ waktuSekarang }: { waktuSekarang: string }) {
   const [ulang, setUlang] = useState(0);
-  return <IsiFormulir key={ulang} mulaiLagi={() => setUlang((n) => n + 1)} />;
+  return (
+    <IsiFormulir
+      key={ulang}
+      waktuSekarang={waktuSekarang}
+      mulaiLagi={() => setUlang((n) => n + 1)}
+    />
+  );
 }
 
-function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
+function IsiFormulir({
+  waktuSekarang,
+  mulaiLagi,
+}: {
+  waktuSekarang: string;
+  mulaiLagi: () => void;
+}) {
   const [hasil, kirim, sedang] = useActionState(catatKomplain, komplainAwal);
 
   // Kotak keterangan hanya muncul saat "Lainnya" dicentang. Ditampilkan
@@ -120,6 +132,25 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
       <section className="flex flex-col gap-4">
         <Judul anak="Jalur dan media" />
         <div className="grid gap-4 sm:grid-cols-2">
+          {/* Komplain sering baru sempat dicatat beberapa jam setelah
+              diterima. Kalau waktunya tidak boleh diisi, yang tercatat
+              jam pengetikan — dan hitungan SLA jadi mengukur kecepatan
+              mengetik, bukan kecepatan menanggapi. */}
+          <div className="sm:col-span-2">
+            <Label
+              judul="Waktu pelaporan diterima"
+              wajib
+              anak={
+                <input
+                  name="waktu_pelaporan"
+                  type="datetime-local"
+                  required
+                  defaultValue={waktuSekarang}
+                  className={gaya}
+                />
+              }
+            />
+          </div>
           <Label
             judul="Jalur pelaporan"
             wajib

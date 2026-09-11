@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { gabungKategori, LAINNYA } from "@/lib/komplain-pilihan";
+import { dariIsianWaktu } from "@/lib/waktu";
 
 import type { HasilKomplain } from "@/lib/hasil";
 
@@ -57,10 +58,17 @@ export async function catatKomplain(
     };
   }
 
+  // Komplain sering baru sempat dicatat beberapa jam setelah
+  // diterima. Kalau waktunya tidak boleh diisi, yang tercatat jam
+  // pengetikan — dan perhitungan SLA jadi menghitung kecepatan
+  // mengetik, bukan kecepatan menanggapi.
+  const waktuPelaporan = dariIsianWaktu(isi(formData, "waktu_pelaporan"));
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("komplain")
     .insert({
+      ...(waktuPelaporan ? { waktu_pelaporan: waktuPelaporan } : {}),
       pelapor_nama: isi(formData, "pelapor_nama"),
       pelapor_hp: isi(formData, "pelapor_hp"),
       pelapor_alamat: isiAtauNull(formData, "pelapor_alamat"),
@@ -133,7 +141,13 @@ export async function simpanTindakLanjut(
       penerima_nama: isiAtauNull(formData, "penerima_nama"),
       penerima_unit: isiAtauNull(formData, "penerima_unit"),
       penerima_jabatan: isiAtauNull(formData, "penerima_jabatan"),
-      waktu_ditanggapi: sebelum.waktu_ditanggapi ?? new Date().toISOString(),
+      // Yang diketik petugas lebih dipercaya daripada jam sistem:
+      // tanggapan bisa saja sudah diberikan lewat telepon kemarin,
+      // dan baru dicatat hari ini.
+      waktu_ditanggapi:
+        dariIsianWaktu(isi(formData, "waktu_ditanggapi")) ??
+        sebelum.waktu_ditanggapi ??
+        new Date().toISOString(),
       jawaban: isiAtauNull(formData, "jawaban"),
       hasil_penyelesaian: isiAtauNull(formData, "hasil_penyelesaian"),
       status,
