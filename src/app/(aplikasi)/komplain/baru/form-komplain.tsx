@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { catatKomplain } from "@/lib/komplain-actions";
 import { komplainAwal } from "@/lib/hasil";
-import { JALUR, MEDIA, KATEGORI, SUMBER, KEPUASAN } from "@/lib/komplain-pilihan";
+import { JALUR, MEDIA, KATEGORI, LAINNYA, SUMBER, KEPUASAN } from "@/lib/komplain-pilihan";
 
 const gaya =
   "rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -50,6 +50,12 @@ export function FormKomplain() {
 
 function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
   const [hasil, kirim, sedang] = useActionState(catatKomplain, komplainAwal);
+
+  // Kotak keterangan hanya muncul saat "Lainnya" dicentang. Ditampilkan
+  // terus-menerus, ia jadi pertanyaan yang tidak relevan bagi sebagian
+  // besar komplain; disembunyikan sama sekali, keterangannya tidak
+  // pernah tertulis.
+  const [adaLainnya, setAdaLainnya] = useState(false);
 
   if (hasil.kode) {
     return (
@@ -160,12 +166,27 @@ function IsiFormulir({ mulaiLagi }: { mulaiLagi: () => void }) {
                   type="checkbox"
                   name="kategori_masalah"
                   value={k}
+                  onChange={
+                    k === LAINNYA
+                      ? (e) => setAdaLainnya(e.target.checked)
+                      : undefined
+                  }
                   className="accent-hijau"
                 />
                 {k}
               </label>
             ))}
           </div>
+
+          {adaLainnya && (
+            <input
+              name="kategori_lain"
+              required
+              autoFocus
+              placeholder="Kategori lainnya — tulis singkat, misalnya: parkir penuh"
+              className={`${gaya} mt-1 w-full text-sm`}
+            />
+          )}
         </fieldset>
 
         <div className="grid gap-4 sm:grid-cols-2">

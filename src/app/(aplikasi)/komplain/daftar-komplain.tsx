@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { STATUS, GRADING, pecahKategori } from "@/lib/komplain-pilihan";
+import { STATUS, GRADING, labelKategori, pecahKategori } from "@/lib/komplain-pilihan";
 
 export type BarisKomplain = {
   id: number;
@@ -146,7 +146,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
                           key={k}
                           className="rounded-full bg-permukaan-2 px-2 py-0.5 text-xs text-tinta-2"
                         >
-                          {k}
+                          {labelKategori(k)}
                         </span>
                       ))}
                     </span>

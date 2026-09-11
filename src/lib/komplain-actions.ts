@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { gabungKategori } from "@/lib/komplain-pilihan";
+import { gabungKategori, LAINNYA } from "@/lib/komplain-pilihan";
 
 import type { HasilKomplain } from "@/lib/hasil";
 
@@ -42,8 +42,19 @@ export async function catatKomplain(
 
   // Kategori diperiksa tersendiri: isinya kotak centang, bisa lebih
   // dari satu, dan yang kosong tidak terbaca oleh pemeriksaan di atas.
-  if (formData.getAll("kategori_masalah").length === 0) {
+  const kategori = formData.getAll("kategori_masalah").map(String);
+  if (kategori.length === 0) {
     return { pesan: "Kategori masalah harus dipilih, boleh lebih dari satu.", kode: null };
+  }
+
+  // "Lainnya" tanpa keterangan tidak memberi tahu apa-apa kepada yang
+  // membacanya bulan depan — sama saja dengan tidak diisi.
+  const kategoriLain = isi(formData, "kategori_lain");
+  if (kategori.includes(LAINNYA) && kategoriLain === "") {
+    return {
+      pesan: 'Kategori "Lainnya" harus disertai keterangan singkat.',
+      kode: null,
+    };
   }
 
   const supabase = await createClient();
@@ -60,9 +71,7 @@ export async function catatKomplain(
       pasien_alamat: isiAtauNull(formData, "pasien_alamat"),
       jalur_pelaporan: isi(formData, "jalur_pelaporan"),
       media_pelaporan: isi(formData, "media_pelaporan"),
-      kategori_masalah: gabungKategori(
-        formData.getAll("kategori_masalah").map(String),
-      ),
+      kategori_masalah: gabungKategori(kategori, kategoriLain),
       sumber_pelaporan: isi(formData, "sumber_pelaporan"),
       detail_masalah: isi(formData, "detail_masalah"),
       kepuasan_awal: isiAtauNull(formData, "kepuasan_awal"),

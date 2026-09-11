@@ -1,7 +1,7 @@
 import { bolehAkses } from "@/lib/akses";
 import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { SLA_JAM, pecahKategori } from "@/lib/komplain-pilihan";
+import { SLA_JAM, pecahKategori, pokokKategori } from "@/lib/komplain-pilihan";
 import { PemilihBulan } from "./pemilih-bulan";
 
 const NAMA_BULAN = [
@@ -189,11 +189,17 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
             {/* Satu komplain bisa punya beberapa kategori, jadi
                 dihitung per kategori — bukan per gabungannya.
                 Akibatnya jumlah baris di sini bisa melebihi jumlah
-                komplainnya, dan memang begitu seharusnya. */}
+                komplainnya, dan memang begitu seharusnya.
+                Dihitung menurut nama pokoknya: "Lainnya: parkir
+                penuh" masuk kelompok "Lainnya", supaya keterangan
+                sekali-pakai tidak memecah rekap jadi puluhan baris
+                yang tidak bisa dibandingkan antar bulan. */}
             <Rincian
               judul="Menurut kategori"
               baris={kelompokkan(
-                (komplain ?? []).flatMap((k) => pecahKategori(k.kategori_masalah)),
+                (komplain ?? []).flatMap((k) =>
+                  pecahKategori(k.kategori_masalah).map(pokokKategori),
+                ),
               )}
             />
             <Rincian judul="Menurut grading" baris={kelompokkan((komplain ?? []).map((k) => k.grading))} />

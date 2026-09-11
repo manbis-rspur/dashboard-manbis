@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { bacaIdentitas } from "@/lib/identitas";
-import { pecahKategori } from "@/lib/komplain-pilihan";
+import { labelKategori, pecahKategori } from "@/lib/komplain-pilihan";
 import { PicuCetak } from "./picu-cetak";
 import { gayaCetak } from "./gaya";
 
@@ -138,7 +138,9 @@ export default async function HalamanCetak({ params }: PageProps<"/komplain/[id]
                 </div>
                 <div className="baris-pilihan">
                   <Kotak isi={kategoriLainnya.length > 0} label="Lain-Lain" />
-                  <span className="garis-isi">{kategoriLainnya.join(", ")}</span>
+                  <span className="garis-isi">
+                    {kategoriLainnya.map(labelKategori).join(", ")}
+                  </span>
                 </div>
               </td>
             </tr>
