@@ -10,6 +10,13 @@
 export const gayaCetak = `
   @page { size: A4 portrait; margin: 8mm; }
 
+  /* Peramban membuang warna latar saat mencetak kecuali diminta
+     tegas — pilihan "Background graphics" di kotak cetak Chrome
+     bawaannya mati. Tanpa baris ini, kotak centang yang hitam dan
+     kepala tabel yang abu-abu keluar putih polos di PDF, seolah
+     tidak ada yang pernah dicentang. */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
   body { background: #e5e5e5; margin: 0; }
 
   .lembar {
@@ -58,7 +65,20 @@ export const gayaCetak = `
     display: inline-block; width: 2.8mm; height: 2.8mm; flex: none;
     border: 0.7pt solid #000; background: #fff; position: relative; top: 0.3mm;
   }
-  .kotak.terisi { background: #000; box-shadow: inset 0 0 0 0.6mm #fff; }
+
+  /* Tandanya digambar dari dua sisi garis yang dimiringkan, bukan dari
+     latar hitam. Garis selalu ikut tercetak; latar belum tentu — dan
+     kalau satu setelan cetak saja berbeda, seluruh centangan hilang
+     tanpa ada yang menyadarinya sampai formulirnya terlanjur dipakai. */
+  .kotak.terisi::after {
+    content: "";
+    position: absolute;
+    left: 0.9mm; top: 0.05mm;
+    width: 0.8mm; height: 1.8mm;
+    border: solid #000;
+    border-width: 0 0.7pt 0.7pt 0;
+    transform: rotate(42deg);
+  }
   .garis-isi { flex: 1; min-width: 22mm; border-bottom: 0.7pt dotted #000; text-align: left; }
 
   .sel-uraian { height: 42mm; white-space: pre-wrap; }
