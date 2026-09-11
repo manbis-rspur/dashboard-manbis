@@ -11,6 +11,8 @@ const gaya =
 
 export type NilaiAwal = {
   id: number;
+  /** Bentuk isian tanggal-jam WIB. */
+  waktuPelaporan: string;
   /** Bentuk isian tanggal-jam WIB; kosong bila belum pernah ditanggapi. */
   waktuDitanggapi: string;
   /** Waktu sekarang, dihitung peladen — lihat catatan di bawah. */
@@ -70,17 +72,34 @@ export function FormTindakLanjut({ awal }: { awal: NilaiAwal }) {
           dihitung dua kali, angka yang digambar peladen dan yang
           digambar peramban bisa berbeda semenit, dan React
           mengosongkan isiannya karena dianggap tidak cocok. */}
-      <Label
-        judul="Waktu ditanggapi"
-        anak={
-          <input
-            name="waktu_ditanggapi"
-            type="datetime-local"
-            defaultValue={awal.waktuDitanggapi || awal.waktuSekarang}
-            className={gaya}
-          />
-        }
-      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label
+          judul="Waktu pelaporan diterima"
+          anak={
+            <input
+              name="waktu_pelaporan"
+              type="datetime-local"
+              defaultValue={awal.waktuPelaporan}
+              className={gaya}
+            />
+          }
+        />
+        <Label
+          judul="Waktu ditanggapi"
+          anak={
+            <input
+              name="waktu_ditanggapi"
+              type="datetime-local"
+              defaultValue={awal.waktuDitanggapi || awal.waktuSekarang}
+              className={gaya}
+            />
+          }
+        />
+      </div>
+      <p className="-mt-3 text-xs text-tinta-3">
+        Keduanya boleh dikoreksi kapan saja. Selisihnya yang dipakai
+        menghitung SLA, dan keduanya yang tercetak di formulir resmi.
+      </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Label judul="No. rekam medis" anak={<input name="pasien_no_rm" defaultValue={awal.pasienNoRm} className={gaya} />} />

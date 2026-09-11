@@ -55,6 +55,7 @@ export default async function HalamanDetailKomplain({
 
   const awal: NilaiAwal = {
     id: k.id,
+    waktuPelaporan: keIsianWaktu(k.waktu_pelaporan),
     waktuDitanggapi: keIsianWaktu(k.waktu_ditanggapi),
     waktuSekarang: sekarangIsianWaktu(),
     pasienNoRm: k.pasien_no_rm ?? "",

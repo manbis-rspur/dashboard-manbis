@@ -123,7 +123,7 @@ export async function simpanTindakLanjut(
 
   const { data: sebelum } = await supabase
     .from("komplain")
-    .select("kode, waktu_ditanggapi, status")
+    .select("kode, waktu_pelaporan, waktu_ditanggapi, status")
     .eq("id", id)
     .maybeSingle();
 
@@ -134,9 +134,17 @@ export async function simpanTindakLanjut(
   const status = isi(formData, "status") || "Diproses";
   const grading = isiAtauNull(formData, "grading");
 
+  // Waktu pelaporan boleh dikoreksi belakangan — komplain yang
+  // terlanjur tercatat dengan jam pengetikan tidak bisa dibetulkan
+  // dari mana pun selain di sini. Yang kosong dibiarkan apa adanya:
+  // kolomnya tidak boleh kosong, dan mengosongkannya karena isian
+  // yang lupa diisi akan merusak catatan yang sudah benar.
+  const waktuPelaporan = dariIsianWaktu(isi(formData, "waktu_pelaporan"));
+
   const { data: tersentuh, error } = await supabase
     .from("komplain")
     .update({
+      ...(waktuPelaporan ? { waktu_pelaporan: waktuPelaporan } : {}),
       pasien_no_rm: isiAtauNull(formData, "pasien_no_rm"),
       penerima_nama: isiAtauNull(formData, "penerima_nama"),
       penerima_unit: isiAtauNull(formData, "penerima_unit"),
