@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Ikon from "@/components/ikon";
 import {
   hapusTugas,
@@ -47,6 +47,13 @@ export function BarisTugas({
   lampiran?: Lampiran[];
 }) {
   const [hasil, kirim, sedang] = useActionState(ubahTugas, hasilAwal);
+
+  // Tipe yang sedang dipilih di kotak, bukan yang tersimpan. Tanpa
+  // ini, mengganti tipe di panel sunting tidak mengubah isian di
+  // sebelahnya sampai disimpan — orang mengisi hari kerja pada tugas
+  // sekali jalan, lalu heran isiannya hilang.
+  const [jenisDipilih, setJenisDipilih] = useState(t.jenis);
+  const berulangDipilih = jenisDipilih === BERULANG;
 
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
   const lewat = terbuka && t.tenggat !== null && t.tenggat < hariIni;
@@ -191,17 +198,24 @@ export function BarisTugas({
                   className={gaya}
                 />
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
-                  Tenggat
-                </span>
-                <input
-                  type="date"
-                  name="tenggat"
-                  defaultValue={t.tenggat ?? ""}
-                  className={gaya}
-                />
-              </label>
+              {/* Yang berulang tidak punya tenggat — harinya yang
+                  menentukan kapan ia muncul. Yang sekali jalan tidak
+                  punya hari kerja — tanggalnya sudah menjawab itu.
+                  Keduanya disembunyikan bergantian, bukan dibiarkan
+                  berdiri tanpa guna. */}
+              {!berulangDipilih && (
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+                    Tenggat
+                  </span>
+                  <input
+                    type="date"
+                    name="tenggat"
+                    defaultValue={t.tenggat ?? ""}
+                    className={gaya}
+                  />
+                </label>
+              )}
               <label className="flex flex-col gap-1.5">
                 <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                   Prioritas
@@ -226,7 +240,12 @@ export function BarisTugas({
                 <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                   Jenis
                 </span>
-                <select name="jenis" defaultValue={t.jenis} className={gaya}>
+                <select
+                  name="jenis"
+                  value={jenisDipilih}
+                  onChange={(e) => setJenisDipilih(e.target.value)}
+                  className={gaya}
+                >
                   {JENIS.map((j) => (
                     <option key={j} value={j}>
                       {j}
@@ -236,7 +255,7 @@ export function BarisTugas({
               </label>
             </div>
 
-            {t.jenis === BERULANG && (
+            {berulangDipilih && (
               <fieldset className="rounded-lg border border-garis px-3 py-2.5">
                 <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                   Hari kerjanya
