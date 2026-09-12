@@ -48,10 +48,15 @@ export function FormTugas({
         className={gaya}
       />
 
-      <input
+      {/* Kotak bertingkat, bukan satu baris: yang ditulis di sini
+          uraian pekerjaan — langkahnya apa saja, ukurannya berapa,
+          diserahkan ke siapa. Satu baris memaksa orang meringkas
+          sampai keterangannya kehilangan guna. */}
+      <textarea
         name="keterangan"
-        placeholder="Keterangan — untuk siapa, hasilnya berupa apa (boleh dikosongkan)"
-        className={gaya}
+        rows={3}
+        placeholder="Uraian pekerjaan — apa yang diminta, hasilnya berupa apa, diserahkan ke siapa (boleh dikosongkan)"
+        className={`${gaya} w-full`}
       />
 
       {/* Dua jenis, karena dua sifat yang berbeda. Yang punya garis

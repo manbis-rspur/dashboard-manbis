@@ -97,18 +97,21 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
 
         <div className="border-t border-garis px-4 py-4">
           {t.keterangan && (
-            <p className="mb-3 text-sm text-tinta-2">{t.keterangan}</p>
+            <p className="mb-3 text-sm whitespace-pre-wrap text-tinta-2">
+              {t.keterangan}
+            </p>
           )}
 
           <form action={kirim} className="flex flex-col gap-3">
             <input type="hidden" name="id" value={t.id} />
 
             <input name="judul" defaultValue={t.judul} required className={gaya} />
-            <input
+            <textarea
               name="keterangan"
+              rows={3}
               defaultValue={t.keterangan ?? ""}
-              placeholder="Keterangan"
-              className={gaya}
+              placeholder="Uraian pekerjaan — apa yang diminta, hasilnya berupa apa"
+              className={`${gaya} w-full`}
             />
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -168,11 +171,12 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
               </label>
             </div>
 
-            <input
+            <textarea
               name="catatan_hasil"
+              rows={2}
               defaultValue={t.catatan_hasil ?? ""}
               placeholder="Catatan hasil — apa yang sudah dikerjakan, apa yang menghambat"
-              className={gaya}
+              className={`${gaya} w-full`}
             />
 
             {hasil.pesan && <p className="text-sm text-merah">{hasil.pesan}</p>}
