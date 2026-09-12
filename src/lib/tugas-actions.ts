@@ -36,11 +36,10 @@ function hariTerpilih(formData: FormData, jenis: string): number[] | null {
   return unik.length > 0 ? unik : null;
 }
 
-function segarkan(id?: number) {
+function segarkan() {
   revalidatePath("/tugas");
   revalidatePath("/tugas/unit");
   revalidatePath("/");
-  if (id) revalidatePath(`/tugas/${id}`);
 }
 
 /** Menambah satu tugas ke daftar sendiri. */
@@ -125,7 +124,7 @@ export async function ubahStatusTugas(formData: FormData) {
   const supabase = await createClient();
   await supabase.from("tugas").update({ status }).eq("id", id);
 
-  segarkan(id);
+  segarkan();
 }
 
 /**
@@ -150,7 +149,7 @@ export async function tandaiHariIni(formData: FormData) {
     .update({ terakhir_dikerjakan: batal ? null : hariIni() })
     .eq("id", id);
 
-  segarkan(id);
+  segarkan();
 }
 
 /** Menyunting isi sebuah tugas. */
@@ -204,7 +203,7 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
     return { pesan: "Tidak ada yang tersimpan — tugas ini mungkin bukan milik Anda.", berhasil: null };
   }
 
-  segarkan(id);
+  segarkan();
   return { pesan: null, berhasil: "Tersimpan." };
 }
 
@@ -390,7 +389,7 @@ export async function catatLampiran(_s: Hasil, formData: FormData): Promise<Hasi
     return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
   }
 
-  segarkan(tugasId);
+  segarkan();
   return { pesan: null, berhasil: jalur ? "Berkas terlampir." : "Tautan tersimpan." };
 }
 
