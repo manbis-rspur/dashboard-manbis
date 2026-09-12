@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
 import { JENIS, PRIORITAS, STATUS } from "@/lib/tugas";
 import type { Hasil } from "@/lib/hasil";
 
@@ -241,4 +243,133 @@ export async function tutupHari(_s: Hasil, formData: FormData): Promise<Hasil> {
         ? `Hari ditutup. Semua ${selesai} tugas selesai.`
         : `Hari ditutup. ${selesai} selesai, ${sisa} lanjut besok.`,
   };
+}
+
+
+/**
+ * Izin sekali-pakai untuk menaruh satu lampiran di penyimpanan.
+ *
+ * Berkasnya naik dari peramban langsung ke penyimpanan, tidak lewat
+ * server action — batas kiriman server action 1 MB, dan di Vercel
+ * batas kerasnya 4,5 MB. Desain spanduk beresolusi cetak gampang
+ * melewatinya.
+ */
+export type IzinLampiran =
+  | { jalur: string; token: string; pesan: null }
+  | { jalur: null; token: null; pesan: string };
+
+export async function siapkanLampiran(
+  tugasId: number,
+  namaBerkas: string,
+): Promise<IzinLampiran> {
+  const tolak = (pesan: string): IzinLampiran => ({ jalur: null, token: null, pesan });
+
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return tolak("Sesi Anda sudah berakhir. Masuk lagi.");
+
+  // Hak melampirkan mengikuti hak membaca tugasnya — ditanyakan ke
+  // database, bukan disimpulkan di sini.
+  const supabase = await createClient();
+  const { data: boleh } = await supabase.rpc("boleh_lihat_tugas", { p_tugas_id: tugasId });
+  if (boleh !== true) return tolak("Anda tidak berhak melampirkan berkas ke tugas ini.");
+
+  if (!jenisLampiranDiterima(namaBerkas)) {
+    return tolak(
+      `Jenis berkas belum didukung. Yang diterima: ${JENIS_LAMPIRAN.join(", ")}. Video cukup ditempel tautannya.`,
+    );
+  }
+
+  const bersih = namaBerkas.replace(/[^\w.\-]+/g, "-").slice(-80);
+  const jalur = `tugas/${tugasId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${bersih}`;
+
+  const { data, error } = await createAdminClient()
+    .storage.from("dokumen")
+    .createSignedUploadUrl(jalur);
+
+  if (error || !data) {
+    return tolak(`Gagal menyiapkan unggahan: ${error?.message ?? "tidak diketahui"}`);
+  }
+
+  return { jalur: data.path, token: data.token, pesan: null };
+}
+
+/** Mencatat satu lampiran — berkas yang sudah naik, atau tautan. */
+export async function catatLampiran(_s: Hasil, formData: FormData): Promise<Hasil> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+
+  const tugasId = Number(formData.get("tugas_id"));
+  if (!tugasId) return { pesan: "Tugas tidak dikenali.", berhasil: null };
+
+  const jalur = isi(formData, "jalur");
+  const tautan = isi(formData, "tautan");
+
+  if (!jalur && !tautan) {
+    return { pesan: "Pilih berkasnya, atau tempel tautannya.", berhasil: null };
+  }
+
+  if (tautan && !tautan.startsWith("https://")) {
+    return {
+      pesan: "Tautannya harus dimulai dengan https:// — salin apa adanya dari bilah alamat.",
+      berhasil: null,
+    };
+  }
+
+  const ukuran = Number(formData.get("berkas_ukuran"));
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("tugas_lampiran").insert(
+    jalur
+      ? {
+          tugas_id: tugasId,
+          jenis: "Berkas",
+          judul: isiAtauNull(formData, "judul"),
+          berkas_jalur: jalur,
+          berkas_nama: isi(formData, "berkas_nama") || "lampiran",
+          berkas_ukuran: Number.isFinite(ukuran) && ukuran > 0 ? ukuran : null,
+          oleh: pengguna.id,
+        }
+      : {
+          tugas_id: tugasId,
+          jenis: "Tautan",
+          judul: isiAtauNull(formData, "judul"),
+          tautan,
+          oleh: pengguna.id,
+        },
+  );
+
+  if (error) {
+    // Berkasnya sudah terlanjur naik tapi catatannya gagal — dibuang
+    // lagi supaya tidak ada berkas yatim di penyimpanan.
+    if (jalur) await createAdminClient().storage.from("dokumen").remove([jalur]);
+    return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
+  }
+
+  segarkan(tugasId);
+  return { pesan: null, berhasil: jalur ? "Berkas terlampir." : "Tautan tersimpan." };
+}
+
+/** Menghapus satu lampiran beserta berkasnya. */
+export async function hapusLampiran(formData: FormData) {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return;
+
+  const id = Number(formData.get("id"));
+  if (!id) return;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tugas_lampiran")
+    .select("berkas_jalur")
+    .eq("id", id)
+    .maybeSingle();
+
+  const { error } = await supabase.from("tugas_lampiran").delete().eq("id", id);
+  if (error) return;
+
+  if (data?.berkas_jalur) {
+    await createAdminClient().storage.from("dokumen").remove([data.berkas_jalur]);
+  }
+
+  segarkan();
 }

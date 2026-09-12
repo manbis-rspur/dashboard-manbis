@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import Ikon from "@/components/ikon";
 import { hapusTugas, ubahStatusTugas, ubahTugas } from "@/lib/tugas-actions";
+import { LampiranTugas } from "./lampiran-tugas";
+import type { Lampiran } from "@/lib/lampiran";
 import { hasilAwal } from "@/lib/hasil";
 import {
   JENIS,
@@ -26,7 +28,15 @@ const gaya =
  * penuh kotak isian tidak bisa dibaca sekilas, dan yang tidak bisa
  * dibaca sekilas tidak akan dibuka tiap pagi.
  */
-export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
+export function BarisTugas({
+  t,
+  hariIni,
+  lampiran = [],
+}: {
+  t: Tugas;
+  hariIni: string;
+  lampiran?: Lampiran[];
+}) {
   const [hasil, kirim, sedang] = useActionState(ubahTugas, hasilAwal);
 
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
@@ -192,6 +202,8 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
               </button>
             </div>
           </form>
+
+          <LampiranTugas tugasId={t.id} daftar={lampiran} />
 
           <form action={hapusTugas} className="mt-3 border-t border-garis pt-3">
             <input type="hidden" name="id" value={t.id} />

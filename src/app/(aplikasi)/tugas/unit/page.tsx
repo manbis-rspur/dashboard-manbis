@@ -57,6 +57,21 @@ export default async function PapanTugasUnit() {
   ]);
 
   const daftar = (tugas ?? []) as Tugas[];
+
+  // Lampiran hasil ikut dibaca: melihat desainnya sendiri jauh lebih
+  // berarti daripada membaca kata "selesai".
+  const { data: berkas } = await supabase
+    .from("tugas_lampiran")
+    .select("id, tugas_id, jenis, judul, berkas_nama, tautan")
+    .order("pada", { ascending: false })
+    .limit(500);
+
+  const lampiran = new Map<number, { id: number; jenis: string; judul: string | null; berkas_nama: string | null; tautan: string | null }[]>();
+  for (const l of berkas ?? []) {
+    const kumpulan = lampiran.get(l.tugas_id) ?? [];
+    kumpulan.push(l);
+    lampiran.set(l.tugas_id, kumpulan);
+  }
   const anggota = (orang ?? []) as Orang[];
 
   const { tugas: terbuka, berjalan: semuaBerjalan } = pisahJenis(
@@ -185,6 +200,31 @@ export default async function PapanTugasUnit() {
                     >
                       {t.status}
                     </span>
+                    {(lampiran.get(t.id) ?? []).length > 0 && (
+                      <span className="flex w-full flex-wrap gap-x-3 gap-y-1 pt-0.5 text-xs">
+                        {(lampiran.get(t.id) ?? []).map((l) =>
+                          l.jenis === "Tautan" ? (
+                            <a
+                              key={l.id}
+                              href={l.tautan ?? "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-hijau hover:underline"
+                            >
+                              {l.judul || "tautan hasil"}
+                            </a>
+                          ) : (
+                            <a
+                              key={l.id}
+                              href={`/tugas/lampiran/${l.id}`}
+                              className="text-hijau hover:underline"
+                            >
+                              {l.judul || l.berkas_nama}
+                            </a>
+                          ),
+                        )}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

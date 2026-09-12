@@ -11,6 +11,7 @@ import {
   type Kelompok,
   type Tugas,
 } from "@/lib/tugas";
+import type { Lampiran } from "@/lib/lampiran";
 import { BarisTugas } from "./baris-tugas";
 import { FormTugas, type Anggota } from "./form-tugas";
 import { TutupHari } from "./tutup-hari";
@@ -59,6 +60,22 @@ export default async function HalamanTugas() {
     .limit(300);
 
   const semua = (data ?? []) as Tugas[];
+
+  // Lampiran diambil sekali untuk seluruh daftar, bukan satu kueri
+  // per baris — tiga puluh tugas berarti tiga puluh perjalanan ke
+  // database, dan halamannya akan terasa berat tanpa alasan.
+  const { data: berkas } = await supabase
+    .from("tugas_lampiran")
+    .select("id, tugas_id, jenis, judul, berkas_nama, berkas_ukuran, tautan, pada")
+    .in("tugas_id", semua.length > 0 ? semua.map((t) => t.id) : [0])
+    .order("pada", { ascending: false });
+
+  const lampiran = new Map<number, Lampiran[]>();
+  for (const l of (berkas ?? []) as Lampiran[]) {
+    const kumpulan = lampiran.get(l.tugas_id) ?? [];
+    kumpulan.push(l);
+    lampiran.set(l.tugas_id, kumpulan);
+  }
   const { tugas: adaSelesainya, berjalan } = pisahJenis(
     semua.filter((t) => MASIH_TERBUKA.includes(t.status)),
   );
@@ -132,7 +149,12 @@ export default async function HalamanTugas() {
               </h2>
               <ul className="flex flex-col gap-2">
                 {kelompok[k].map((t) => (
-                  <BarisTugas key={t.id} t={t} hariIni={kini} />
+                  <BarisTugas
+                    key={t.id}
+                    t={t}
+                    hariIni={kini}
+                    lampiran={lampiran.get(t.id) ?? []}
+                  />
                 ))}
               </ul>
             </section>
@@ -156,7 +178,12 @@ export default async function HalamanTugas() {
           </p>
           <ul className="flex flex-col gap-2">
             {berjalan.map((t) => (
-              <BarisTugas key={t.id} t={t} hariIni={kini} />
+              <BarisTugas
+                key={t.id}
+                t={t}
+                hariIni={kini}
+                lampiran={lampiran.get(t.id) ?? []}
+              />
             ))}
           </ul>
         </section>
@@ -172,7 +199,12 @@ export default async function HalamanTugas() {
           </h2>
           <ul className="flex flex-col gap-2">
             {selesai.map((t) => (
-              <BarisTugas key={t.id} t={t} hariIni={kini} />
+              <BarisTugas
+                key={t.id}
+                t={t}
+                hariIni={kini}
+                lampiran={lampiran.get(t.id) ?? []}
+              />
             ))}
           </ul>
         </section>
