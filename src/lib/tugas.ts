@@ -19,6 +19,10 @@ export type Tugas = {
   selesai_pada: string | null;
   /** 'Tugas' punya garis selesai; 'Berjalan' tidak. */
   jenis: string;
+  /** Hari kerja peran berjalan, 1 Senin sampai 7 Minggu. */
+  hari: number[] | null;
+  /** Tanggal terakhir peran berjalan ditandai sudah dikerjakan. */
+  terakhir_dikerjakan: string | null;
 };
 
 export const PRIORITAS = ["Rendah", "Sedang", "Tinggi"] as const;
@@ -122,4 +126,65 @@ export function warnaStatus(status: string): string {
   if (status === "Ditunda") return "bg-[#f6efe2] text-oker";
   if (status === "Batal") return "bg-permukaan-2 text-tinta-3";
   return "bg-permukaan-2 text-tinta-2";
+}
+
+
+/** Nama hari menurut nomor ISO: 1 Senin sampai 7 Minggu. */
+export const HARI_PILIHAN = [
+  { n: 1, label: "Senin", singkat: "Sen" },
+  { n: 2, label: "Selasa", singkat: "Sel" },
+  { n: 3, label: "Rabu", singkat: "Rab" },
+  { n: 4, label: "Kamis", singkat: "Kam" },
+  { n: 5, label: "Jumat", singkat: "Jum" },
+  { n: 6, label: "Sabtu", singkat: "Sab" },
+  { n: 7, label: "Minggu", singkat: "Min" },
+] as const;
+
+/** Nomor hari ISO untuk sebuah tanggal YYYY-MM-DD. */
+export function nomorHari(tanggal: string): number {
+  const d = new Date(`${tanggal}T00:00:00Z`).getUTCDay();
+  return d === 0 ? 7 : d;
+}
+
+/**
+ * Apakah peran berjalan ini jatuh hari ini dan belum ditandai.
+ *
+ * Penanda "sudah dikerjakan" berupa tanggal, bukan status. Peran
+ * yang berjalan tidak pernah berubah jadi selesai — ia cuma sudah
+ * dikerjakan untuk hari ini, dan besok menunggu lagi. Menyimpannya
+ * sebagai tanggal membuat satu baris cukup untuk selamanya; kalau
+ * tiap hari dibuatkan barisnya sendiri, setahun saja sudah ratusan
+ * baris yang tidak pernah dibaca siapa pun.
+ */
+export function jatuhHariIni(t: Tugas, kini = hariIni()): boolean {
+  if (t.jenis !== "Berjalan") return false;
+  if (!t.hari || t.hari.length === 0) return false;
+  if (!t.hari.includes(nomorHari(kini))) return false;
+  return t.terakhir_dikerjakan !== kini;
+}
+
+/** Menyebut hari kerja dengan ringkas: "Sen–Jum · Min". */
+export function sebutHari(hari: number[] | null): string {
+  if (!hari || hari.length === 0) return "";
+
+  const urut = [...new Set(hari)].sort((a, b) => a - b);
+  const nama = (n: number) =>
+    HARI_PILIHAN.find((h) => h.n === n)?.singkat ?? String(n);
+
+  const potongan: string[] = [];
+  let mulai = urut[0];
+  let akhir = urut[0];
+
+  for (const n of urut.slice(1)) {
+    if (n === akhir + 1) {
+      akhir = n;
+      continue;
+    }
+    potongan.push(mulai === akhir ? nama(mulai) : `${nama(mulai)}–${nama(akhir)}`);
+    mulai = n;
+    akhir = n;
+  }
+  potongan.push(mulai === akhir ? nama(mulai) : `${nama(mulai)}–${nama(akhir)}`);
+
+  return potongan.join(" · ");
 }

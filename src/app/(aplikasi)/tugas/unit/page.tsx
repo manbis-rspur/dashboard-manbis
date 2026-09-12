@@ -2,13 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Ikon from "@/components/ikon";
 import { getPenggunaAktif } from "@/lib/auth";
-import { bolehAkses } from "@/lib/akses";
+import { punyaIzin } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
   pisahJenis,
+  sebutHari,
   sebutTenggat,
   warnaStatus,
   type Tugas,
@@ -36,7 +37,7 @@ type Orang = { id: number; nama: string; jabatan: string };
 export default async function PapanTugasUnit() {
   const pengguna = await getPenggunaAktif();
   if (!pengguna) redirect("/login");
-  if (!(await bolehAkses("tugas_unit"))) redirect("/tanpa-akses");
+  if (!(await punyaIzin("tugas_unit"))) redirect("/tanpa-akses");
 
   const kini = hitungHariIni();
   const supabase = await createClient();
@@ -50,7 +51,7 @@ export default async function PapanTugasUnit() {
     supabase
       .from("tugas")
       .select(
-        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan",
       )
       .order("tenggat", { ascending: true, nullsFirst: false })
       .limit(500),
@@ -161,7 +162,13 @@ export default async function PapanTugasUnit() {
 
             {peran.length > 0 && (
               <p className="text-xs text-tinta-3">
-                Peran berjalan: {peran.map((t) => t.judul).join(" · ")}
+                Peran berjalan:{" "}
+                {peran
+                  .map((t) => {
+                    const h = sebutHari(t.hari);
+                    return h ? `${t.judul} (${h})` : t.judul;
+                  })
+                  .join(" · ")}
               </p>
             )}
 

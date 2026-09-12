@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Ikon, { type NamaIkon } from "@/components/ikon";
 import { wajibLogin } from "@/lib/auth";
-import { bolehAkses } from "@/lib/akses";
+import { punyaIzin } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
+  jatuhHariIni,
   kelompokTugas,
   pisahJenis,
   type Kelompok,
@@ -36,7 +37,7 @@ export default async function HalamanTugas() {
   const pengguna = await wajibLogin();
   const kini = hitungHariIni();
 
-  const bolehPapan = await bolehAkses("tugas_unit");
+  const bolehPapan = await punyaIzin("tugas_unit");
 
   const supabase = await createClient();
   const { data: orang } = bolehPapan
@@ -52,7 +53,7 @@ export default async function HalamanTugas() {
   const { data } = await supabase
     .from("tugas")
     .select(
-      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan",
     )
     .eq("untuk", pengguna.id)
     .order("tenggat", { ascending: true, nullsFirst: false })
@@ -88,6 +89,12 @@ export default async function HalamanTugas() {
     nanti: [],
   };
   for (const t of terbuka) kelompok[kelompokTugas(t, kini)].push(t);
+
+  // Peran berjalan yang hari ini memang harinya ikut naik ke daftar
+  // hari ini — itulah gunanya mencatat harinya. Yang sudah ditandai
+  // turun lagi ke bagiannya sendiri.
+  const berjalanHariIni = berjalan.filter((t) => jatuhHariIni(t, kini));
+  kelompok["hari-ini"].push(...berjalanHariIni);
 
   // Yang ditutup sore hari: yang lewat tenggat dan yang jatuh hari
   // ini. Yang masih jauh tenggatnya tidak ikut ditanya — menanyakan
@@ -177,14 +184,16 @@ export default async function HalamanTugas() {
             ia selesai.
           </p>
           <ul className="flex flex-col gap-2">
-            {berjalan.map((t) => (
+            {berjalan
+              .filter((t) => !berjalanHariIni.includes(t))
+              .map((t) => (
               <BarisTugas
                 key={t.id}
                 t={t}
                 hariIni={kini}
                 lampiran={lampiran.get(t.id) ?? []}
               />
-            ))}
+              ))}
           </ul>
         </section>
       )}

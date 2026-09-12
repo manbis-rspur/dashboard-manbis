@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Ikon from "@/components/ikon";
 import { tambahTugas } from "@/lib/tugas-actions";
 import { hasilAwal } from "@/lib/hasil";
-import { PRIORITAS } from "@/lib/tugas";
+import { HARI_PILIHAN, PRIORITAS } from "@/lib/tugas";
 
 const gaya =
   "rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -30,6 +30,7 @@ export function FormTugas({
   anggota: Anggota[];
 }) {
   const [hasil, kirim, sedang] = useActionState(tambahTugas, hasilAwal);
+  const [berjalan, setBerjalan] = useState(false);
 
   return (
     <form
@@ -73,6 +74,7 @@ export function FormTugas({
             name="jenis"
             value="Tugas"
             defaultChecked
+            onChange={() => setBerjalan(false)}
             className="mt-0.5 accent-hijau"
           />
           <span>
@@ -83,7 +85,13 @@ export function FormTugas({
           </span>
         </label>
         <label className="flex flex-1 items-start gap-2.5 rounded-lg border border-garis px-3 py-2 text-sm hover:bg-permukaan-2">
-          <input type="radio" name="jenis" value="Berjalan" className="mt-0.5 accent-hijau" />
+          <input
+            type="radio"
+            name="jenis"
+            value="Berjalan"
+            onChange={() => setBerjalan(true)}
+            className="mt-0.5 accent-hijau"
+          />
           <span>
             Peran berjalan
             <span className="block text-xs text-tinta-3">
@@ -92,6 +100,30 @@ export function FormTugas({
           </span>
         </label>
       </fieldset>
+
+      {/* Peran yang berjalan sering punya iramanya sendiri — update
+          jadwal dokter tiap Senin sampai Jumat sore dan Minggu sore.
+          Tanpa tempat menuliskan harinya, irama itu cuma ada di
+          kepala, dan yang cuma ada di kepala itulah yang terlupa. */}
+      {berjalan && (
+        <fieldset className="rounded-lg border border-garis px-3 py-2.5">
+          <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+            Hari kerjanya
+          </legend>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {HARI_PILIHAN.map((h) => (
+              <label key={h.n} className="flex items-center gap-1.5 text-sm">
+                <input type="checkbox" name="hari" value={h.n} className="accent-hijau" />
+                {h.label}
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-tinta-3">
+            Boleh dikosongkan. Kalau diisi, peran ini naik ke daftar hari ini
+            setiap hari yang dicentang, sampai ditandai sudah dikerjakan.
+          </p>
+        </fieldset>
+      )}
 
       <div className={`grid gap-3 ${anggota.length > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {/* Hanya Koordinator yang melihat pilihan ini. Bagi yang lain,

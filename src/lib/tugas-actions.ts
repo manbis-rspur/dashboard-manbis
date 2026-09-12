@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
-import { bolehAkses } from "@/lib/akses";
+import { punyaIzin } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
-import { JENIS, PRIORITAS, STATUS } from "@/lib/tugas";
+import { JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
 import type { Hasil } from "@/lib/hasil";
 
 function isi(formData: FormData, nama: string) {
@@ -16,6 +16,24 @@ function isi(formData: FormData, nama: string) {
 function isiAtauNull(formData: FormData, nama: string) {
   const nilai = isi(formData, nama);
   return nilai === "" ? null : nilai;
+}
+
+/**
+ * Hari kerja yang dicentang, hanya untuk peran yang berjalan.
+ *
+ * Tugas yang punya garis selesai sudah punya tenggat; memberinya
+ * hari kerja berulang cuma membingungkan, dan database menolaknya.
+ */
+function hariTerpilih(formData: FormData, jenis: string): number[] | null {
+  if (jenis !== "Berjalan") return null;
+
+  const angka = formData
+    .getAll("hari")
+    .map((h) => Number(h))
+    .filter((h) => Number.isInteger(h) && h >= 1 && h <= 7);
+
+  const unik = [...new Set(angka)].sort((a, b) => a - b);
+  return unik.length > 0 ? unik : null;
 }
 
 function segarkan(id?: number) {
@@ -59,7 +77,7 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
   // lewat tenggat.
   const diminta = Number(formData.get("untuk"));
   const untuk =
-    diminta && diminta !== pengguna.id && (await bolehAkses("tugas_unit"))
+    diminta && diminta !== pengguna.id && (await punyaIzin("tugas_unit"))
       ? diminta
       : pengguna.id;
 
@@ -71,6 +89,7 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
     ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
     tenggat,
     jenis,
+    hari: hariTerpilih(formData, jenis),
     prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
     dibuat_oleh: pengguna.id,
   });
@@ -109,6 +128,31 @@ export async function ubahStatusTugas(formData: FormData) {
   segarkan(id);
 }
 
+/**
+ * Menandai peran berjalan sudah dikerjakan untuk hari ini.
+ *
+ * Yang disimpan tanggalnya, bukan statusnya. Peran yang berjalan
+ * tidak pernah berubah jadi selesai — ia cuma sudah dikerjakan hari
+ * ini, dan besok menunggu lagi.
+ */
+export async function tandaiHariIni(formData: FormData) {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return;
+
+  const id = Number(formData.get("id"));
+  if (!id) return;
+
+  const batal = isi(formData, "batal") === "ya";
+
+  const supabase = await createClient();
+  await supabase
+    .from("tugas")
+    .update({ terakhir_dikerjakan: batal ? null : hariIni() })
+    .eq("id", id);
+
+  segarkan(id);
+}
+
 /** Menyunting isi sebuah tugas. */
 export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
   const pengguna = await getPenggunaAktif();
@@ -143,6 +187,7 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
       ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
       tenggat,
       jenis,
+      hari: hariTerpilih(formData, jenis),
       prioritas: isi(formData, "prioritas") || "Sedang",
       status: isi(formData, "status") || "Belum",
       catatan_hasil: isiAtauNull(formData, "catatan_hasil"),

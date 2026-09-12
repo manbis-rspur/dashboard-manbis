@@ -2,14 +2,22 @@
 
 import { useActionState } from "react";
 import Ikon from "@/components/ikon";
-import { hapusTugas, ubahStatusTugas, ubahTugas } from "@/lib/tugas-actions";
+import {
+  hapusTugas,
+  tandaiHariIni,
+  ubahStatusTugas,
+  ubahTugas,
+} from "@/lib/tugas-actions";
 import { LampiranTugas } from "./lampiran-tugas";
 import type { Lampiran } from "@/lib/lampiran";
 import { hasilAwal } from "@/lib/hasil";
 import {
+  HARI_PILIHAN,
   JENIS,
   PRIORITAS,
   STATUS,
+  jatuhHariIni,
+  sebutHari,
   sebutTenggat,
   warnaPrioritas,
   warnaStatus,
@@ -42,6 +50,8 @@ export function BarisTugas({
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
   const lewat = terbuka && t.tenggat !== null && t.tenggat < hariIni;
   const berjalan = t.jenis === "Berjalan";
+  const jatuhIni = jatuhHariIni(t, hariIni);
+  const sudahHariIni = berjalan && t.terakhir_dikerjakan === hariIni;
 
   return (
     <li
@@ -69,8 +79,15 @@ export function BarisTugas({
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className={lewat ? "font-semibold text-merah" : "text-tinta-3"}>
-                {berjalan ? "berjalan terus" : sebutTenggat(t.tenggat, hariIni)}
+                {berjalan
+                  ? sebutHari(t.hari) || "berjalan terus"
+                  : sebutTenggat(t.tenggat, hariIni)}
               </span>
+              {sudahHariIni && (
+                <span className="rounded-full bg-hijau-muda px-2 py-0.5 font-medium text-hijau">
+                  sudah hari ini
+                </span>
+              )}
               {t.prioritas !== "Sedang" && (
                 <span
                   className={`rounded-full border px-1.5 py-0.5 ${warnaPrioritas(t.prioritas)}`}
@@ -83,6 +100,26 @@ export function BarisTugas({
               </span>
             </span>
           </span>
+
+          {/* Peran berjalan tidak punya tombol Selesai — tidak ada
+              hari ia berhenti. Yang ada penanda "sudah untuk hari
+              ini", dan besok ia menunggu lagi. */}
+          {berjalan && (jatuhIni || sudahHariIni) && (
+            <form action={tandaiHariIni}>
+              <input type="hidden" name="id" value={t.id} />
+              <input type="hidden" name="batal" value={sudahHariIni ? "ya" : "tidak"} />
+              <button
+                type="submit"
+                className={
+                  sudahHariIni
+                    ? "rounded-lg border border-garis px-2.5 py-1 text-xs font-medium text-tinta-3 hover:bg-permukaan-2"
+                    : "flex items-center gap-1.5 rounded-lg bg-hijau px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
+                }
+              >
+                {sudahHariIni ? "Batalkan tanda" : "Sudah hari ini"}
+              </button>
+            </form>
+          )}
 
           {terbuka && !berjalan && (
             <span className="flex items-center gap-1.5">
@@ -188,6 +225,28 @@ export function BarisTugas({
                 </select>
               </label>
             </div>
+
+            {t.jenis === "Berjalan" && (
+              <fieldset className="rounded-lg border border-garis px-3 py-2.5">
+                <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+                  Hari kerjanya
+                </legend>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {HARI_PILIHAN.map((h) => (
+                    <label key={h.n} className="flex items-center gap-1.5 text-sm">
+                      <input
+                        type="checkbox"
+                        name="hari"
+                        value={h.n}
+                        defaultChecked={(t.hari ?? []).includes(h.n)}
+                        className="accent-hijau"
+                      />
+                      {h.label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             <textarea
               name="catatan_hasil"

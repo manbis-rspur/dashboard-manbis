@@ -7,6 +7,7 @@ import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
+  jatuhHariIni,
   pisahJenis,
   sebutTenggat,
   type Tugas,
@@ -138,7 +139,11 @@ function PanelTugas({
                   <li key={t.id} className="border-l-2 border-garis pl-3 text-sm">
                     {t.judul}
                     <span className="ml-2 text-xs text-tinta-3">
-                      {t.status === "Dikerjakan" ? "sedang dikerjakan" : sebutTenggat(t.tenggat, kini)}
+                      {t.jenis === "Berjalan"
+                        ? "peran berjalan — jatuh hari ini"
+                        : t.status === "Dikerjakan"
+                          ? "sedang dikerjakan"
+                          : sebutTenggat(t.tenggat, kini)}
                     </span>
                   </li>
                 ))}
@@ -224,7 +229,7 @@ export default async function Beranda() {
     supabase
       .from("tugas")
       .select(
-        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan",
       )
       .eq("untuk", pengguna.id)
       .in("status", MASIH_TERBUKA)
@@ -274,7 +279,12 @@ export default async function Beranda() {
 
   const { tugas: daftarTugas, berjalan } = pisahJenis((tugas ?? []) as Tugas[]);
   const tugasLewat = daftarTugas.filter((t) => kelompokTugas(t, kini) === "lewat");
-  const tugasHariIni = daftarTugas.filter((t) => kelompokTugas(t, kini) === "hari-ini");
+  const tugasHariIni = [
+    ...daftarTugas.filter((t) => kelompokTugas(t, kini) === "hari-ini"),
+    // Peran berjalan yang hari ini memang harinya ikut disebut —
+    // itulah gunanya mencatat harinya.
+    ...berjalan.filter((t) => jatuhHariIni(t, kini)),
+  ];
 
   const hariIni = sekarang.toLocaleDateString("id-ID", {
     weekday: "long",
