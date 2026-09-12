@@ -7,6 +7,7 @@ import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
+  pisahJenis,
   sebutTenggat,
   type Tugas,
 } from "@/lib/tugas";
@@ -59,10 +60,12 @@ function Angka({
 function PanelTugas({
   lewat,
   hariIni,
+  berjalan,
   kini,
 }: {
   lewat: Tugas[];
   hariIni: Tugas[];
+  berjalan: Tugas[];
   kini: string;
 }) {
   const adaYangMenunggu = lewat.length + hariIni.length > 0;
@@ -86,6 +89,13 @@ function PanelTugas({
           <Ikon nama="tugas" ukuran={14} />
         </Link>
       </div>
+
+      {berjalan.length > 0 && (
+        <p className="mt-2 text-xs text-tinta-3">
+          Sambil menanggung {berjalan.length} peran berjalan:{" "}
+          {berjalan.map((t) => t.judul).join(" · ")}
+        </p>
+      )}
 
       {!adaYangMenunggu ? (
         <p className="mt-3 text-sm text-tinta-2">
@@ -214,7 +224,7 @@ export default async function Beranda() {
     supabase
       .from("tugas")
       .select(
-        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada",
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
       )
       .eq("untuk", pengguna.id)
       .in("status", MASIH_TERBUKA)
@@ -262,7 +272,7 @@ export default async function Beranda() {
     ? terakhir?.pengguna[0]
     : terakhir?.pengguna;
 
-  const daftarTugas = (tugas ?? []) as Tugas[];
+  const { tugas: daftarTugas, berjalan } = pisahJenis((tugas ?? []) as Tugas[]);
   const tugasLewat = daftarTugas.filter((t) => kelompokTugas(t, kini) === "lewat");
   const tugasHariIni = daftarTugas.filter((t) => kelompokTugas(t, kini) === "hari-ini");
 
@@ -297,7 +307,12 @@ export default async function Beranda() {
         </div>
       </section>
 
-      <PanelTugas lewat={tugasLewat} hariIni={tugasHariIni} kini={kini} />
+      <PanelTugas
+        lewat={tugasLewat}
+        hariIni={tugasHariIni}
+        berjalan={berjalan}
+        kini={kini}
+      />
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Angka

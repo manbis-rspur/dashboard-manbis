@@ -54,6 +54,40 @@ export function FormTugas({
         className={gaya}
       />
 
+      {/* Dua jenis, karena dua sifat yang berbeda. Yang punya garis
+          selesai masuk daftar harian; peran yang berjalan terus punya
+          tempatnya sendiri supaya tidak nongkrong di "Hari ini"
+          selamanya dan membuat daftarnya berhenti dibaca. */}
+      <fieldset className="flex flex-wrap gap-2">
+        <legend className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+          Jenis
+        </legend>
+        <label className="flex flex-1 items-start gap-2.5 rounded-lg border border-garis px-3 py-2 text-sm hover:bg-permukaan-2">
+          <input
+            type="radio"
+            name="jenis"
+            value="Tugas"
+            defaultChecked
+            className="mt-0.5 accent-hijau"
+          />
+          <span>
+            Tugas
+            <span className="block text-xs text-tinta-3">
+              Ada hasilnya, ada selesainya
+            </span>
+          </span>
+        </label>
+        <label className="flex flex-1 items-start gap-2.5 rounded-lg border border-garis px-3 py-2 text-sm hover:bg-permukaan-2">
+          <input type="radio" name="jenis" value="Berjalan" className="mt-0.5 accent-hijau" />
+          <span>
+            Peran berjalan
+            <span className="block text-xs text-tinta-3">
+              Jabatan atau pekerjaan tanpa garis selesai
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
       <div className={`grid gap-3 ${anggota.length > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {/* Hanya Koordinator yang melihat pilihan ini. Bagi yang lain,
             tugas selalu untuk dirinya sendiri dan tidak perlu ada

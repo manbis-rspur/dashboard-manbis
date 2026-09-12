@@ -17,9 +17,29 @@ export type Tugas = {
   status: string;
   catatan_hasil: string | null;
   selesai_pada: string | null;
+  /** 'Tugas' punya garis selesai; 'Berjalan' tidak. */
+  jenis: string;
 };
 
 export const PRIORITAS = ["Rendah", "Sedang", "Tinggi"] as const;
+
+export const JENIS = ["Tugas", "Berjalan"] as const;
+
+/**
+ * Memisahkan pekerjaan yang punya garis selesai dari peran yang
+ * berjalan terus.
+ *
+ * Keduanya perlu tercatat — yang tidak tercatat akan terlupa — tapi
+ * hanya yang pertama yang pantas muncul di daftar harian. Daftar
+ * yang selalu penuh oleh hal yang sama cepat berhenti dibaca, dan
+ * yang benar-benar mendesak ikut tenggelam bersamanya.
+ */
+export function pisahJenis(daftar: Tugas[]) {
+  return {
+    tugas: daftar.filter((t) => t.jenis !== "Berjalan"),
+    berjalan: daftar.filter((t) => t.jenis === "Berjalan"),
+  };
+}
 
 export const STATUS = ["Belum", "Dikerjakan", "Selesai", "Ditunda", "Batal"] as const;
 

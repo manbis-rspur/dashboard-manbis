@@ -8,6 +8,7 @@ import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
+  pisahJenis,
   sebutTenggat,
   warnaStatus,
   type Tugas,
@@ -49,7 +50,7 @@ export default async function PapanTugasUnit() {
     supabase
       .from("tugas")
       .select(
-        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada",
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
       )
       .order("tenggat", { ascending: true, nullsFirst: false })
       .limit(500),
@@ -58,7 +59,9 @@ export default async function PapanTugasUnit() {
   const daftar = (tugas ?? []) as Tugas[];
   const anggota = (orang ?? []) as Orang[];
 
-  const terbuka = daftar.filter((t) => MASIH_TERBUKA.includes(t.status));
+  const { tugas: terbuka, berjalan: semuaBerjalan } = pisahJenis(
+    daftar.filter((t) => MASIH_TERBUKA.includes(t.status)),
+  );
   const selesaiHariIni = daftar.filter(
     (t) => t.status === "Selesai" && (t.selesai_pada ?? "").slice(0, 10) >= kini,
   );
@@ -113,6 +116,7 @@ export default async function PapanTugasUnit() {
 
       {anggota.map((a) => {
         const miliknya = terbuka.filter((t) => t.untuk === a.id);
+        const peran = semuaBerjalan.filter((t) => t.untuk === a.id);
         const lewat = miliknya.filter((t) => kelompokTugas(t, kini) === "lewat");
         const sisanya = miliknya.filter((t) => kelompokTugas(t, kini) !== "lewat");
         const tuntas = selesaiHariIni.filter((t) => t.untuk === a.id).length;
@@ -139,6 +143,12 @@ export default async function PapanTugasUnit() {
                 )}
               </p>
             </div>
+
+            {peran.length > 0 && (
+              <p className="text-xs text-tinta-3">
+                Peran berjalan: {peran.map((t) => t.judul).join(" · ")}
+              </p>
+            )}
 
             {miliknya.length === 0 ? (
               <p className="text-sm text-tinta-3">

@@ -2,6 +2,13 @@ import { bolehAkses } from "@/lib/akses";
 import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { SLA_JAM, pecahKategori, pokokKategori } from "@/lib/komplain-pilihan";
+import {
+  MASIH_TERBUKA,
+  hariIni as hitungHariIni,
+  kelompokTugas,
+  pisahJenis,
+  type Tugas,
+} from "@/lib/tugas";
 import { PemilihBulan } from "./pemilih-bulan";
 
 const NAMA_BULAN = [
@@ -98,6 +105,27 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
         .lt("waktu_pelaporan", akhir)
     : { data: null };
 
+  // Tugas yang ditutup pada bulan itu — inilah bahan laporan
+  // bulanannya. Yang masih berjalan ikut dihitung supaya terlihat
+  // berapa yang terbawa ke bulan berikutnya.
+  const { data: tugasSelesai } = await supabase
+    .from("tugas")
+    .select(
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, pemilik:untuk(nama)",
+    )
+    .eq("status", "Selesai")
+    .gte("selesai_pada", awal)
+    .lt("selesai_pada", akhir)
+    .order("selesai_pada", { ascending: true });
+
+  const { data: tugasTerbuka } = await supabase
+    .from("tugas")
+    .select(
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, pemilik:untuk(nama)",
+    )
+    .in("status", MASIH_TERBUKA)
+    .limit(500);
+
   const { data: publikasi } = bolehPublikasi
     ? await supabase
         .from("publikasi")
@@ -105,6 +133,17 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
         .gte("diunggah_pada", awal)
         .lt("diunggah_pada", akhir)
     : { data: null };
+
+  const tanggalKini = hitungHariIni();
+  const selesaiBulanIni = ((tugasSelesai ?? []) as unknown as Tugas[]).filter(
+    (t) => t.jenis !== "Berjalan",
+  );
+  const { tugas: masihBerjalan, berjalan: peranBerjalan } = pisahJenis(
+    (tugasTerbuka ?? []) as unknown as Tugas[],
+  );
+  const tugasLewat = masihBerjalan.filter(
+    (t) => kelompokTugas(t, tanggalKini) === "lewat",
+  );
 
   const daftarNomor = nomor ?? [];
   const ditanggapi = (komplain ?? []).filter((k) => k.sla_jam !== null);
@@ -206,6 +245,69 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
           </div>
         </section>
       )}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+          Tugas
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Angka
+            label="Selesai bulan ini"
+            nilai={selesaiBulanIni.length}
+            keterangan="ditutup pada rentang bulan ini"
+          />
+          <Angka
+            label="Masih berjalan"
+            nilai={masihBerjalan.length}
+            keterangan="terbawa ke bulan berikutnya"
+          />
+          <Angka label="Lewat tenggat" nilai={tugasLewat.length} />
+          <Angka
+            label="Peran berjalan"
+            nilai={peranBerjalan.length}
+            keterangan="tanpa garis selesai"
+          />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Rincian
+            judul="Selesai menurut pemegangnya"
+            baris={kelompokkan(
+              selesaiBulanIni.map((t) => {
+                const o = t as unknown as { pemilik?: { nama: string } | { nama: string }[] };
+                const p = Array.isArray(o.pemilik) ? o.pemilik[0] : o.pemilik;
+                return p?.nama ?? null;
+              }),
+            )}
+          />
+          <Rincian
+            judul="Selesai menurut prioritas"
+            baris={kelompokkan(selesaiBulanIni.map((t) => t.prioritas))}
+          />
+        </div>
+
+        {/* Daftarnya ikut ditulis, bukan cuma angkanya. Yang dipakai
+            menyusun laporan bulanan adalah apa yang dikerjakan, dan
+            catatan hasilnya — angka saja tidak bisa diceritakan
+            kepada siapa pun. */}
+        {selesaiBulanIni.length > 0 && (
+          <div className="rounded-xl border border-garis bg-permukaan p-4 shadow-lembut">
+            <p className="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+              Yang diselesaikan bulan ini
+            </p>
+            <ol className="flex flex-col gap-2">
+              {selesaiBulanIni.map((t) => (
+                <li key={t.id} className="border-l-2 border-hijau pl-3 text-sm">
+                  {t.judul}
+                  {t.catatan_hasil && (
+                    <span className="block text-xs text-tinta-3">{t.catatan_hasil}</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </section>
 
       {bolehPublikasi && (
         <section className="flex flex-col gap-3">

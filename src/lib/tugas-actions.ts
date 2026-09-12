@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
 import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
-import { PRIORITAS, STATUS } from "@/lib/tugas";
+import { JENIS, PRIORITAS, STATUS } from "@/lib/tugas";
 import type { Hasil } from "@/lib/hasil";
 
 function isi(formData: FormData, nama: string) {
@@ -32,7 +32,14 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
   if (judul === "") return { pesan: "Judul tugas harus diisi.", berhasil: null };
 
   const mulai = isi(formData, "tanggal_mulai");
-  const tenggat = isiAtauNull(formData, "tenggat");
+  const jenisDiminta = isi(formData, "jenis");
+  const jenis = (JENIS as readonly string[]).includes(jenisDiminta)
+    ? jenisDiminta
+    : "Tugas";
+
+  // Peran yang berjalan tidak punya tenggat, dan memberinya tenggat
+  // justru menyesatkan — seolah ada hari ia berhenti.
+  const tenggat = jenis === "Berjalan" ? null : isiAtauNull(formData, "tenggat");
 
   if (tenggat && mulai !== "" && tenggat < mulai) {
     return {
@@ -61,6 +68,7 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
     keterangan: isiAtauNull(formData, "keterangan"),
     ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
     tenggat,
+    jenis,
     prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
     dibuat_oleh: pengguna.id,
   });
@@ -111,7 +119,11 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
   if (judul === "") return { pesan: "Judul tugas harus diisi.", berhasil: null };
 
   const mulai = isi(formData, "tanggal_mulai");
-  const tenggat = isiAtauNull(formData, "tenggat");
+  const jenisDiminta = isi(formData, "jenis");
+  const jenis = (JENIS as readonly string[]).includes(jenisDiminta)
+    ? jenisDiminta
+    : "Tugas";
+  const tenggat = jenis === "Berjalan" ? null : isiAtauNull(formData, "tenggat");
 
   if (tenggat && mulai !== "" && tenggat < mulai) {
     return {
@@ -128,6 +140,7 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
       keterangan: isiAtauNull(formData, "keterangan"),
       ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
       tenggat,
+      jenis,
       prioritas: isi(formData, "prioritas") || "Sedang",
       status: isi(formData, "status") || "Belum",
       catatan_hasil: isiAtauNull(formData, "catatan_hasil"),

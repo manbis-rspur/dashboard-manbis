@@ -7,6 +7,7 @@ import {
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
+  pisahJenis,
   type Kelompok,
   type Tugas,
 } from "@/lib/tugas";
@@ -50,7 +51,7 @@ export default async function HalamanTugas() {
   const { data } = await supabase
     .from("tugas")
     .select(
-      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada",
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis",
     )
     .eq("untuk", pengguna.id)
     .order("tenggat", { ascending: true, nullsFirst: false })
@@ -58,7 +59,10 @@ export default async function HalamanTugas() {
     .limit(300);
 
   const semua = (data ?? []) as Tugas[];
-  const terbuka = semua.filter((t) => MASIH_TERBUKA.includes(t.status));
+  const { tugas: adaSelesainya, berjalan } = pisahJenis(
+    semua.filter((t) => MASIH_TERBUKA.includes(t.status)),
+  );
+  const terbuka = adaSelesainya;
 
   const kelompok: Record<Kelompok, Tugas[]> = {
     lewat: [],
@@ -103,12 +107,14 @@ export default async function HalamanTugas() {
       <FormTugas hariIni={kini} saya={pengguna.id} anggota={anggota} />
 
       {terbuka.length === 0 ? (
+        berjalan.length === 0 && (
         <div className="rounded-xl border border-garis bg-permukaan px-5 py-10 text-center shadow-lembut">
           <p className="font-medium">Daftar tugas Anda kosong.</p>
           <p className="mt-1 text-sm text-tinta-3">
             Tulis satu saja dulu — yang paling mengganjal pikiran pagi ini.
           </p>
         </div>
+        )
       ) : (
         (Object.keys(KELOMPOK) as Kelompok[]).map((k) =>
           kelompok[k].length === 0 ? null : (
@@ -132,6 +138,28 @@ export default async function HalamanTugas() {
             </section>
           ),
         )
+      )}
+
+      {berjalan.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+            <Ikon nama="pengguna" ukuran={14} />
+            Peran yang berjalan terus
+            <span className="font-normal normal-case tracking-normal text-tinta-3">
+              {berjalan.length}
+            </span>
+          </h2>
+          <p className="-mt-1 text-sm text-tinta-2">
+            Tetap tercatat dan tetap terlihat Koordinator sebagai beban yang
+            Anda tanggung, tapi tidak ikut ditanya tiap sore — tidak ada hari
+            ia selesai.
+          </p>
+          <ul className="flex flex-col gap-2">
+            {berjalan.map((t) => (
+              <BarisTugas key={t.id} t={t} hariIni={kini} />
+            ))}
+          </ul>
+        </section>
       )}
 
       <TutupHari daftar={untukDitutup} hariIni={kini} />

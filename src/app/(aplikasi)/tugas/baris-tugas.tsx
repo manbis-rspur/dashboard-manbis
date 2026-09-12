@@ -5,6 +5,7 @@ import Ikon from "@/components/ikon";
 import { hapusTugas, ubahStatusTugas, ubahTugas } from "@/lib/tugas-actions";
 import { hasilAwal } from "@/lib/hasil";
 import {
+  JENIS,
   PRIORITAS,
   STATUS,
   sebutTenggat,
@@ -30,6 +31,7 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
 
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
   const lewat = terbuka && t.tenggat !== null && t.tenggat < hariIni;
+  const berjalan = t.jenis === "Berjalan";
 
   return (
     <li
@@ -49,7 +51,7 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className={lewat ? "font-semibold text-merah" : "text-tinta-3"}>
-                {sebutTenggat(t.tenggat, hariIni)}
+                {berjalan ? "berjalan terus" : sebutTenggat(t.tenggat, hariIni)}
               </span>
               {t.prioritas !== "Sedang" && (
                 <span
@@ -64,7 +66,7 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
             </span>
           </span>
 
-          {terbuka && (
+          {terbuka && !berjalan && (
             <span className="flex items-center gap-1.5">
               {t.status !== "Dikerjakan" && (
                 <form action={ubahStatusTugas}>
@@ -109,7 +111,7 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
               className={gaya}
             />
 
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <label className="flex flex-col gap-1.5">
                 <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                   Mulai
@@ -149,6 +151,18 @@ export function BarisTugas({ t, hariIni }: { t: Tugas; hariIni: string }) {
                 <select name="status" defaultValue={t.status} className={gaya}>
                   {STATUS.map((s) => (
                     <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+                  Jenis
+                </span>
+                <select name="jenis" defaultValue={t.jenis} className={gaya}>
+                  {JENIS.map((j) => (
+                    <option key={j} value={j}>
+                      {j === "Berjalan" ? "Peran berjalan" : "Tugas"}
+                    </option>
                   ))}
                 </select>
               </label>
