@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Ikon from "@/components/ikon";
 import { tambahTugas } from "@/lib/tugas-actions";
 import { hasilAwal } from "@/lib/hasil";
@@ -9,38 +9,105 @@ import { BERULANG, HARI_PILIHAN, JENIS_KETERANGAN, PRIORITAS, SEKALI } from "@/l
 const gaya =
   "rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
 
-/**
- * Menambah satu tugas.
- *
- * Sengaja terbuka terus, bukan bersembunyi di balik tombol: menulis
- * tugas harus lebih mudah daripada mengingatnya. Satu langkah
- * tambahan saja sudah cukup membuat orang menunda menulis, dan yang
- * ditunda ditulis akhirnya tidak pernah ditulis.
- */
 export type Anggota = { id: number; nama: string; jabatan: string };
 
-export function FormTugas({
-  hariIni,
-  saya,
-  anggota,
-}: {
+type Isian = {
   hariIni: string;
   saya: number;
   /** Kosong bagi yang tidak berhak menitipkan tugas ke orang lain. */
   anggota: Anggota[];
+};
+
+/**
+ * Menambah satu tugas.
+ *
+ * Tertutup sampai tombolnya ditekan. Formulir yang berdiri terbuka
+ * di atas daftar membuat halamannya panjang dan daftar tugas — yang
+ * justru dicari tiap pagi — terdorong ke bawah lipatan layar.
+ *
+ * Sesudah satu tugas tersimpan, formulirnya dipasang ulang dari
+ * bersih tapi tetap terbuka: menulis tugas jarang cuma satu, dan
+ * membuka ulang tombolnya tiap kali cuma menambah langkah. Dipasang
+ * ulang, bukan dikosongkan satu per satu — itu satu-satunya cara
+ * useActionState melupakan hasil sebelumnya.
+ */
+export function FormTugas(isian: Isian) {
+  const [buka, setBuka] = useState(false);
+  const [ulang, setUlang] = useState(0);
+  const [kabar, setKabar] = useState<string | null>(null);
+
+  if (!buka) {
+    return (
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setBuka(true)}
+          className="flex w-fit items-center gap-2 rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white shadow-lembut hover:opacity-90"
+        >
+          <Ikon nama="tambah" ukuran={16} />
+          Tulis tugas baru
+        </button>
+        {kabar && <p className="text-sm text-hijau">{kabar}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <IsiFormulir
+      key={ulang}
+      {...isian}
+      kabar={kabar}
+      tutup={() => setBuka(false)}
+      selesai={(pesan) => {
+        setKabar(pesan);
+        setUlang((n) => n + 1);
+      }}
+    />
+  );
+}
+
+function IsiFormulir({
+  hariIni,
+  saya,
+  anggota,
+  kabar,
+  tutup,
+  selesai,
+}: Isian & {
+  kabar: string | null;
+  tutup: () => void;
+  selesai: (pesan: string) => void;
 }) {
   const [hasil, kirim, sedang] = useActionState(tambahTugas, hasilAwal);
   const [berjalan, setBerjalan] = useState(false);
+
+  // Wajib di dalam useEffect: memasang ulang formulir sambil
+  // menggambar berarti mengubah komponen induk di tengah
+  // penggambaran, dan React menolaknya diam-diam.
+  useEffect(() => {
+    if (hasil.berhasil) selesai(hasil.berhasil);
+  }, [hasil.berhasil, selesai]);
 
   return (
     <form
       action={kirim}
       className="flex flex-col gap-3 rounded-xl border border-garis bg-permukaan p-5 shadow-lembut"
     >
-      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
-        <Ikon nama="tambah" ukuran={14} />
-        Tulis tugas baru
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+          <Ikon nama="tambah" ukuran={14} />
+          Tulis tugas baru
+        </h2>
+        <button
+          type="button"
+          onClick={tutup}
+          className="text-xs text-tinta-3 hover:text-tinta"
+        >
+          Tutup
+        </button>
+      </div>
+
+      {kabar && <p className="text-sm text-hijau">{kabar}</p>}
 
       <input
         name="judul"
@@ -187,7 +254,6 @@ export function FormTugas({
       </div>
 
       {hasil.pesan && <p className="text-sm text-merah">{hasil.pesan}</p>}
-      {hasil.berhasil && <p className="text-sm text-hijau">{hasil.berhasil}</p>}
 
       <div className="flex flex-wrap items-center gap-3">
         <button
