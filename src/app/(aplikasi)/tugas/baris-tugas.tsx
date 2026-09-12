@@ -51,6 +51,14 @@ export function BarisTugas({
     >
       <details className="group">
         <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 marker:content-['']">
+          {/* Tanpa panah ini, tidak ada yang menunjukkan barisnya bisa
+              dibuka — dan isian uraian, lampiran, serta tombol hapus
+              di dalamnya tidak akan pernah ditemukan orang. */}
+          <Ikon
+            nama="panah"
+            ukuran={15}
+            className="text-tinta-3 transition-transform group-open:rotate-90"
+          />
           <span className="min-w-0 flex-1">
             <span
               className={`block font-medium ${
