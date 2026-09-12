@@ -272,15 +272,28 @@ export function BarisTugas({
 
           <LampiranTugas tugasId={t.id} daftar={lampiran} />
 
-          <form action={hapusTugas} className="mt-3 border-t border-garis pt-3">
+          {/* Tombolnya tetap di dalam panel, tidak di baris ringkasan:
+              menghapus tidak bisa dibatalkan, dan tombol hapus yang
+              berdiri di samping tombol Selesai cepat atau lambat akan
+              tertekan keliru. Tapi bentuknya dijadikan tombol
+              sungguhan — tulisan abu-abu kecil sebelumnya nyaris
+              tidak terlihat sebagai sesuatu yang bisa ditekan. */}
+          <form action={hapusTugas} className="mt-4 border-t border-garis pt-4">
             <input type="hidden" name="id" value={t.id} />
-            <button type="submit" className="text-xs text-tinta-3 hover:text-merah">
-              hapus tugas ini
-            </button>
-            <span className="ml-2 text-xs text-tinta-3">
-              — untuk yang salah tulis. Yang batal dikerjakan sebaiknya diberi
-              status Batal, supaya jejaknya tetap ada saat menyusun laporan.
-            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 rounded-lg border border-merah px-3 py-1.5 text-xs font-medium text-merah hover:bg-[#f6e7e6]"
+              >
+                <Ikon nama="hapus" ukuran={14} />
+                Hapus tugas
+              </button>
+              <span className="text-xs text-tinta-3">
+                Untuk yang salah tulis. Yang batal dikerjakan sebaiknya diberi
+                status Batal — jejaknya masih berguna saat menyusun laporan
+                bulanan.
+              </span>
+            </div>
           </form>
         </div>
       </details>
