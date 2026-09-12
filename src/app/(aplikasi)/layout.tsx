@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const MENU: ButirMenu[] = [
   { href: "/", label: "Beranda", ikon: "beranda" },
+  { href: "/tugas", label: "Tugas", ikon: "tugas" },
   { href: "/penomoran/ambil-nomor", label: "Penomoran", ikon: "penomoran" },
   { href: "/obrolan", label: "Obrolan", ikon: "obrolan" },
 ];

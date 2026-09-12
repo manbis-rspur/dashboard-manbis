@@ -3,6 +3,13 @@ import Ikon, { type NamaIkon } from "@/components/ikon";
 import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { bolehAkses } from "@/lib/akses";
+import {
+  MASIH_TERBUKA,
+  hariIni as hitungHariIni,
+  kelompokTugas,
+  sebutTenggat,
+  type Tugas,
+} from "@/lib/tugas";
 
 /**
  * Beranda unit — pintu masuk ke seluruh modul.
@@ -37,6 +44,105 @@ function Angka({
       </p>
       {keterangan && <p className="text-xs text-tinta-3">{keterangan}</p>}
     </div>
+  );
+}
+
+/**
+ * Panel tugas hari ini.
+ *
+ * Berdiri paling atas, sebelum angka apa pun. Yang dicari orang
+ * begitu membuka dashboard pagi-pagi adalah jawaban atas "hari ini
+ * saya harus apa" — dan jawaban itu tidak boleh berada di balik satu
+ * klik lagi, karena yang di balik klik tidak dibuka saat sedang
+ * terburu-buru.
+ */
+function PanelTugas({
+  lewat,
+  hariIni,
+  kini,
+}: {
+  lewat: Tugas[];
+  hariIni: Tugas[];
+  kini: string;
+}) {
+  const adaYangMenunggu = lewat.length + hariIni.length > 0;
+
+  return (
+    <section
+      className={`rounded-2xl border bg-permukaan p-5 shadow-lembut ${
+        lewat.length > 0 ? "border-merah" : "border-garis"
+      }`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+          <Ikon nama="tugas" ukuran={14} />
+          Pekerjaan hari ini
+        </h2>
+        <Link
+          href="/tugas"
+          className="flex items-center gap-1.5 rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+        >
+          Buka daftar tugas
+          <Ikon nama="tugas" ukuran={14} />
+        </Link>
+      </div>
+
+      {!adaYangMenunggu ? (
+        <p className="mt-3 text-sm text-tinta-2">
+          Tidak ada tugas yang jatuh hari ini. Kalau ada yang mengganjal
+          pikiran, tulis sekarang selagi ingat.
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-4">
+          {lewat.length > 0 && (
+            <div>
+              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-merah">
+                <Ikon nama="peringatan" ukuran={13} />
+                Lewat tenggat — {lewat.length}
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                {lewat.slice(0, 4).map((t) => (
+                  <li key={t.id} className="border-l-2 border-merah pl-3 text-sm">
+                    {t.judul}
+                    <span className="ml-2 text-xs font-semibold text-merah">
+                      {sebutTenggat(t.tenggat, kini)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {lewat.length > 4 && (
+                <p className="mt-1 pl-3 text-xs text-tinta-3">
+                  dan {lewat.length - 4} lagi
+                </p>
+              )}
+            </div>
+          )}
+
+          {hariIni.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs font-semibold text-tinta-3">
+                Hari ini — {hariIni.length}
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                {hariIni.slice(0, 6).map((t) => (
+                  <li key={t.id} className="border-l-2 border-garis pl-3 text-sm">
+                    {t.judul}
+                    <span className="ml-2 text-xs text-tinta-3">
+                      {t.status === "Dikerjakan" ? "sedang dikerjakan" : sebutTenggat(t.tenggat, kini)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {hariIni.length > 6 && (
+                <p className="mt-1 pl-3 text-xs text-tinta-3">
+                  dan {hariIni.length - 6} lagi
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -91,13 +197,29 @@ export default async function Beranda() {
   // Awal bulan berjalan, dipakai untuk menghitung nomor bulan ini.
   const awalBulan = new Date(tahun, sekarang.getMonth(), 1).toISOString();
 
+  const kini = hitungHariIni();
+
   const [
+    { data: tugas },
     { count },
     { count: bulanIni },
     { count: komplainTerbuka },
     { count: publikasiTertunda },
     { data: terakhir },
   ] = await Promise.all([
+    // Daftar tugas dibaca lebih dulu dari apa pun di halaman ini.
+    // Yang dicari orang begitu masuk kantor adalah jawaban atas
+    // "hari ini saya harus apa", bukan berapa nomor surat yang sudah
+    // diambil sepanjang tahun.
+    supabase
+      .from("tugas")
+      .select(
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada",
+      )
+      .eq("untuk", pengguna.id)
+      .in("status", MASIH_TERBUKA)
+      .order("tenggat", { ascending: true, nullsFirst: false })
+      .limit(100),
     supabase
       .from("nomor")
       .select("id", { count: "exact", head: true })
@@ -140,6 +262,10 @@ export default async function Beranda() {
     ? terakhir?.pengguna[0]
     : terakhir?.pengguna;
 
+  const daftarTugas = (tugas ?? []) as Tugas[];
+  const tugasLewat = daftarTugas.filter((t) => kelompokTugas(t, kini) === "lewat");
+  const tugasHariIni = daftarTugas.filter((t) => kelompokTugas(t, kini) === "hari-ini");
+
   const hariIni = sekarang.toLocaleDateString("id-ID", {
     weekday: "long",
     day: "numeric",
@@ -170,6 +296,8 @@ export default async function Beranda() {
           </Link>
         </div>
       </section>
+
+      <PanelTugas lewat={tugasLewat} hariIni={tugasHariIni} kini={kini} />
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Angka
@@ -236,6 +364,18 @@ export default async function Beranda() {
         </h2>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Modul
+            href="/tugas"
+            ikon="tugas"
+            judul="Tugas Saya"
+            isi="Daftar pekerjaan sendiri: apa yang jatuh hari ini, apa yang lewat tenggat, dan menutup hari sebelum pulang."
+            kaki={
+              tugasLewat.length > 0
+                ? `${tugasLewat.length} lewat tenggat`
+                : `${tugasHariIni.length} menunggu hari ini`
+            }
+          />
+
           <Modul
             href="/penomoran/ambil-nomor"
             ikon="penomoran"
