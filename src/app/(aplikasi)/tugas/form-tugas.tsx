@@ -17,7 +17,18 @@ const gaya =
  * tambahan saja sudah cukup membuat orang menunda menulis, dan yang
  * ditunda ditulis akhirnya tidak pernah ditulis.
  */
-export function FormTugas({ hariIni }: { hariIni: string }) {
+export type Anggota = { id: number; nama: string; jabatan: string };
+
+export function FormTugas({
+  hariIni,
+  saya,
+  anggota,
+}: {
+  hariIni: string;
+  saya: number;
+  /** Kosong bagi yang tidak berhak menitipkan tugas ke orang lain. */
+  anggota: Anggota[];
+}) {
   const [hasil, kirim, sedang] = useActionState(tambahTugas, hasilAwal);
 
   return (
@@ -43,7 +54,25 @@ export function FormTugas({ hariIni }: { hariIni: string }) {
         className={gaya}
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className={`grid gap-3 ${anggota.length > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+        {/* Hanya Koordinator yang melihat pilihan ini. Bagi yang lain,
+            tugas selalu untuk dirinya sendiri dan tidak perlu ada
+            pertanyaan yang jawabannya cuma satu. */}
+        {anggota.length > 0 && (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+              Untuk
+            </span>
+            <select name="untuk" defaultValue={String(saya)} className={gaya}>
+              {anggota.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.id === saya ? "Saya sendiri" : a.nama.split(",")[0]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <label className="flex flex-col gap-1.5">
           <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
             Mulai dikerjakan
@@ -82,8 +111,9 @@ export function FormTugas({ hariIni }: { hariIni: string }) {
           {sedang ? "Menyimpan…" : "Tambahkan"}
         </button>
         <span className="text-xs text-tinta-3">
-          Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah
-          lewat tanggal mulainya.
+          {anggota.length > 0
+            ? "Tanpa tenggat pun boleh. Tugas yang dititipkan ke anggota langsung muncul di lonceng dan daftar tugasnya."
+            : "Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah lewat tanggal mulainya."}
         </span>
       </div>
     </form>

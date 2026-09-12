@@ -64,6 +64,7 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
     { data: publikasi },
     { data: revisi },
     { data: obrolan },
+    { data: tugas },
   ] = await Promise.all([
     supabase
       .from("pengguna")
@@ -96,6 +97,12 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       .from("obrolan")
       .select("id, pesan, dibuat_pada, pengguna_id, pengguna(nama)")
       .eq("dihapus", false)
+      .order("dibuat_pada", { ascending: false })
+      .limit(BANYAK),
+    supabase
+      .from("tugas")
+      .select("id, judul, tenggat, status, untuk, dibuat_oleh, dibuat_pada, pengguna:dibuat_oleh(nama)")
+      .eq("untuk", pengguna.id)
       .order("dibuat_pada", { ascending: false })
       .limit(BANYAK),
   ]);
@@ -179,6 +186,24 @@ export async function bacaLonceng(): Promise<IsiLonceng> {
       waktu: o.dibuat_pada,
       tautan: "/obrolan",
       olehSaya: o.pengguna_id === pengguna.id,
+    });
+  }
+
+  // Tugas yang dititipkan orang lain adalah kabar; tugas yang
+  // ditulis sendiri bukan — orangnya baru saja mengetiknya.
+  for (const g of tugas ?? []) {
+    if (g.dibuat_oleh === pengguna.id) continue;
+
+    daftar.push({
+      kunci: `tugas-${g.id}`,
+      ikon: "tugas",
+      judul: `Tugas baru: ${potong(g.judul, 45)}`,
+      rincian: `Dititipkan ${nama(g.pengguna) || "Koordinator"}${
+        g.tenggat ? ` — tenggat ${g.tenggat}` : ""
+      }`,
+      waktu: g.dibuat_pada,
+      tautan: "/tugas",
+      olehSaya: false,
     });
   }
 

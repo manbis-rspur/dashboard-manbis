@@ -1,5 +1,7 @@
+import Link from "next/link";
 import Ikon, { type NamaIkon } from "@/components/ikon";
 import { wajibLogin } from "@/lib/auth";
+import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import {
   MASIH_TERBUKA,
@@ -9,7 +11,7 @@ import {
   type Tugas,
 } from "@/lib/tugas";
 import { BarisTugas } from "./baris-tugas";
-import { FormTugas } from "./form-tugas";
+import { FormTugas, type Anggota } from "./form-tugas";
 import { TutupHari } from "./tutup-hari";
 
 const tanggalPanjang = new Intl.DateTimeFormat("id-ID", {
@@ -32,7 +34,19 @@ export default async function HalamanTugas() {
   const pengguna = await wajibLogin();
   const kini = hitungHariIni();
 
+  const bolehPapan = await bolehAkses("tugas_unit");
+
   const supabase = await createClient();
+  const { data: orang } = bolehPapan
+    ? await supabase
+        .from("pengguna")
+        .select("id, nama, jabatan")
+        .eq("aktif", true)
+        .order("id")
+    : { data: null };
+
+  const anggota = (orang ?? []) as Anggota[];
+
   const { data } = await supabase
     .from("tugas")
     .select(
@@ -67,15 +81,26 @@ export default async function HalamanTugas() {
 
   return (
     <div className="flex flex-col gap-7">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tugas Saya</h1>
-        <p className="mt-1 flex items-center gap-1.5 text-tinta-2">
-          <Ikon nama="waktu" ukuran={14} />
-          {tanggalPanjang.format(new Date())}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tugas Saya</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-tinta-2">
+            <Ikon nama="waktu" ukuran={14} />
+            {tanggalPanjang.format(new Date())}
+          </p>
+        </div>
+        {bolehPapan && (
+          <Link
+            href="/tugas/unit"
+            className="flex items-center gap-2 rounded-lg border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+          >
+            <Ikon nama="pengguna" ukuran={16} />
+            Papan tugas unit
+          </Link>
+        )}
       </div>
 
-      <FormTugas hariIni={kini} />
+      <FormTugas hariIni={kini} saya={pengguna.id} anggota={anggota} />
 
       {terbuka.length === 0 ? (
         <div className="rounded-xl border border-garis bg-permukaan px-5 py-10 text-center shadow-lembut">

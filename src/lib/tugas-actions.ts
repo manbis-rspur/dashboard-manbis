@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPenggunaAktif } from "@/lib/auth";
+import { bolehAkses } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { PRIORITAS, STATUS } from "@/lib/tugas";
 import type { Hasil } from "@/lib/hasil";
@@ -17,6 +18,7 @@ function isiAtauNull(formData: FormData, nama: string) {
 
 function segarkan(id?: number) {
   revalidatePath("/tugas");
+  revalidatePath("/tugas/unit");
   revalidatePath("/");
   if (id) revalidatePath(`/tugas/${id}`);
 }
@@ -41,9 +43,20 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
 
   const prioritas = isi(formData, "prioritas");
 
+  // Koordinator boleh menitipkan tugas kepada anggota. Ini menutup
+  // jalur WhatsApp yang selama ini jadi sumber lupa: tugas titipan
+  // yang hanya ada di pesan akan tenggelam di bawah pesan lain,
+  // sedangkan yang masuk ke daftar akan berteriak sendiri begitu
+  // lewat tenggat.
+  const diminta = Number(formData.get("untuk"));
+  const untuk =
+    diminta && diminta !== pengguna.id && (await bolehAkses("tugas_unit"))
+      ? diminta
+      : pengguna.id;
+
   const supabase = await createClient();
   const { error } = await supabase.from("tugas").insert({
-    untuk: pengguna.id,
+    untuk,
     judul,
     keterangan: isiAtauNull(formData, "keterangan"),
     ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
@@ -55,7 +68,15 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
   if (error) return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
 
   segarkan();
-  return { pesan: null, berhasil: `"${judul}" masuk daftar.` };
+  revalidatePath("/tugas/unit");
+
+  return {
+    pesan: null,
+    berhasil:
+      untuk === pengguna.id
+        ? `"${judul}" masuk daftar.`
+        : `"${judul}" dititipkan. Muncul di lonceng dan daftar tugasnya.`,
+  };
 }
 
 /**
