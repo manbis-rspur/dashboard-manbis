@@ -125,7 +125,17 @@ export function FormTugas({
         </fieldset>
       )}
 
-      <div className={`grid gap-3 ${anggota.length > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+      <div
+        className={`grid gap-3 ${
+          anggota.length > 0
+            ? berjalan
+              ? "sm:grid-cols-3"
+              : "sm:grid-cols-4"
+            : berjalan
+              ? "sm:grid-cols-2"
+              : "sm:grid-cols-3"
+        }`}
+      >
         {/* Hanya Koordinator yang melihat pilihan ini. Bagi yang lain,
             tugas selalu untuk dirinya sendiri dan tidak perlu ada
             pertanyaan yang jawabannya cuma satu. */}
@@ -151,12 +161,18 @@ export function FormTugas({
           <input type="date" name="tanggal_mulai" defaultValue={hariIni} className={gaya} />
         </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
-            Tenggat
-          </span>
-          <input type="date" name="tenggat" className={gaya} />
-        </label>
+        {/* Peran berjalan tidak punya tenggat — database menolaknya.
+            Kotaknya ikut disembunyikan, bukan sekadar diabaikan:
+            isian yang boleh diisi tapi tidak berpengaruh apa-apa
+            lebih membingungkan daripada isian yang tidak ada. */}
+        {!berjalan && (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+              Tenggat
+            </span>
+            <input type="date" name="tenggat" className={gaya} />
+          </label>
+        )}
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
@@ -182,9 +198,11 @@ export function FormTugas({
           {sedang ? "Menyimpan…" : "Tambahkan"}
         </button>
         <span className="text-xs text-tinta-3">
-          {anggota.length > 0
-            ? "Tanpa tenggat pun boleh. Tugas yang dititipkan ke anggota langsung muncul di lonceng dan daftar tugasnya."
-            : "Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah lewat tanggal mulainya."}
+          {berjalan
+            ? "Peran berjalan tidak punya tenggat. Yang menentukan kapan ia muncul adalah hari kerjanya di atas."
+            : anggota.length > 0
+              ? "Tanpa tenggat pun boleh. Tugas yang dititipkan ke anggota langsung muncul di lonceng dan daftar tugasnya."
+              : "Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah lewat tanggal mulainya."}
         </span>
       </div>
     </form>
