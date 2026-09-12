@@ -19,15 +19,24 @@ export type Tugas = {
   selesai_pada: string | null;
   /** 'Tugas' punya garis selesai; 'Berjalan' tidak. */
   jenis: string;
-  /** Hari kerja peran berjalan, 1 Senin sampai 7 Minggu. */
+  /** Hari kerja tugas berulang, 1 Senin sampai 7 Minggu. */
   hari: number[] | null;
-  /** Tanggal terakhir peran berjalan ditandai sudah dikerjakan. */
+  /** Tanggal terakhir tugas berulang ditandai sudah dikerjakan. */
   terakhir_dikerjakan: string | null;
 };
 
 export const PRIORITAS = ["Rendah", "Sedang", "Tinggi"] as const;
 
-export const JENIS = ["Tugas", "Berjalan"] as const;
+export const SEKALI = "Sekali Jalan";
+export const BERULANG = "Berulang";
+
+export const JENIS = [SEKALI, BERULANG] as const;
+
+/** Keterangan singkat tiap tipe, dipakai di formulir. */
+export const JENIS_KETERANGAN: Record<string, string> = {
+  [SEKALI]: "Dikerjakan sampai selesai, lalu turun ke rekap",
+  [BERULANG]: "Kembali lagi tiap hari yang dipilih",
+};
 
 /**
  * Memisahkan pekerjaan yang punya garis selesai dari peran yang
@@ -40,8 +49,8 @@ export const JENIS = ["Tugas", "Berjalan"] as const;
  */
 export function pisahJenis(daftar: Tugas[]) {
   return {
-    tugas: daftar.filter((t) => t.jenis !== "Berjalan"),
-    berjalan: daftar.filter((t) => t.jenis === "Berjalan"),
+    tugas: daftar.filter((t) => t.jenis !== BERULANG),
+    berjalan: daftar.filter((t) => t.jenis === BERULANG),
   };
 }
 
@@ -147,17 +156,21 @@ export function nomorHari(tanggal: string): number {
 }
 
 /**
- * Apakah peran berjalan ini jatuh hari ini dan belum ditandai.
+ * Apakah tugas berulang ini jatuh hari ini dan belum ditandai.
  *
- * Penanda "sudah dikerjakan" berupa tanggal, bukan status. Peran
- * yang berjalan tidak pernah berubah jadi selesai — ia cuma sudah
+ * Penanda "sudah dikerjakan" berupa tanggal, bukan status. Tugas
+ * berulang tidak berubah jadi selesai tiap hari — ia cuma sudah
  * dikerjakan untuk hari ini, dan besok menunggu lagi. Menyimpannya
  * sebagai tanggal membuat satu baris cukup untuk selamanya; kalau
  * tiap hari dibuatkan barisnya sendiri, setahun saja sudah ratusan
  * baris yang tidak pernah dibaca siapa pun.
  */
 export function jatuhHariIni(t: Tugas, kini = hariIni()): boolean {
-  if (t.jenis !== "Berjalan") return false;
+  if (t.jenis !== BERULANG) return false;
+  // Yang sudah ditandai selesai atau batal berhenti berulang.
+  // Pekerjaan rutin pun suatu saat berpindah tangan, dan sejak saat
+  // itu tidak pantas lagi menagih tiap pagi.
+  if (!MASIH_TERBUKA.includes(t.status)) return false;
   if (!t.hari || t.hari.length === 0) return false;
   if (!t.hari.includes(nomorHari(kini))) return false;
   return t.terakhir_dikerjakan !== kini;

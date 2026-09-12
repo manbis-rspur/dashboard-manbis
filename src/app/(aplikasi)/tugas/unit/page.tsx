@@ -162,7 +162,7 @@ export default async function PapanTugasUnit() {
 
             {peran.length > 0 && (
               <p className="text-xs text-tinta-3">
-                Peran berjalan:{" "}
+                Berulang:{" "}
                 {peran
                   .map((t) => {
                     const h = sebutHari(t.hari);

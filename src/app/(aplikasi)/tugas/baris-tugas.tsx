@@ -12,6 +12,7 @@ import { LampiranTugas } from "./lampiran-tugas";
 import type { Lampiran } from "@/lib/lampiran";
 import { hasilAwal } from "@/lib/hasil";
 import {
+  BERULANG,
   HARI_PILIHAN,
   JENIS,
   PRIORITAS,
@@ -49,7 +50,7 @@ export function BarisTugas({
 
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
   const lewat = terbuka && t.tenggat !== null && t.tenggat < hariIni;
-  const berjalan = t.jenis === "Berjalan";
+  const berjalan = t.jenis === BERULANG;
   const jatuhIni = jatuhHariIni(t, hariIni);
   const sudahHariIni = berjalan && t.terakhir_dikerjakan === hariIni;
 
@@ -80,7 +81,7 @@ export function BarisTugas({
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className={lewat ? "font-semibold text-merah" : "text-tinta-3"}>
                 {berjalan
-                  ? sebutHari(t.hari) || "berjalan terus"
+                  ? sebutHari(t.hari) || "berulang, hari belum dipilih"
                   : sebutTenggat(t.tenggat, hariIni)}
               </span>
               {sudahHariIni && (
@@ -101,9 +102,9 @@ export function BarisTugas({
             </span>
           </span>
 
-          {/* Peran berjalan tidak punya tombol Selesai — tidak ada
-              hari ia berhenti. Yang ada penanda "sudah untuk hari
-              ini", dan besok ia menunggu lagi. */}
+          {/* Tugas berulang ditandai "sudah hari ini", bukan selesai —
+              besok ia menunggu lagi. Tombol Selesai tetap ada di
+              sebelahnya, untuk saat pekerjaannya benar-benar berhenti. */}
           {berjalan && (jatuhIni || sudahHariIni) && (
             <form action={tandaiHariIni}>
               <input type="hidden" name="id" value={t.id} />
@@ -121,9 +122,9 @@ export function BarisTugas({
             </form>
           )}
 
-          {terbuka && !berjalan && (
+          {terbuka && (
             <span className="flex items-center gap-1.5">
-              {t.status !== "Dikerjakan" && (
+              {!berjalan && t.status !== "Dikerjakan" && (
                 <form action={ubahStatusTugas}>
                   <input type="hidden" name="id" value={t.id} />
                   <input type="hidden" name="status" value="Dikerjakan" />
@@ -140,7 +141,16 @@ export function BarisTugas({
                 <input type="hidden" name="status" value="Selesai" />
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-lg bg-hijau px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
+                  className={
+                    berjalan
+                      ? "flex items-center gap-1.5 rounded-lg border border-garis px-2.5 py-1 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
+                      : "flex items-center gap-1.5 rounded-lg bg-hijau px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
+                  }
+                  title={
+                    berjalan
+                      ? "Menutup tugas berulang ini — ia berhenti muncul tiap hari"
+                      : undefined
+                  }
                 >
                   <Ikon nama="centang" ukuran={13} />
                   Selesai
@@ -219,14 +229,14 @@ export function BarisTugas({
                 <select name="jenis" defaultValue={t.jenis} className={gaya}>
                   {JENIS.map((j) => (
                     <option key={j} value={j}>
-                      {j === "Berjalan" ? "Peran berjalan" : "Tugas"}
+                      {j}
                     </option>
                   ))}
                 </select>
               </label>
             </div>
 
-            {t.jenis === "Berjalan" && (
+            {t.jenis === BERULANG && (
               <fieldset className="rounded-lg border border-garis px-3 py-2.5">
                 <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
                   Hari kerjanya

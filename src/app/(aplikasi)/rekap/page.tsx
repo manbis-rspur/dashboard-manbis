@@ -3,6 +3,7 @@ import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { SLA_JAM, pecahKategori, pokokKategori } from "@/lib/komplain-pilihan";
 import {
+  BERULANG,
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
@@ -148,7 +149,7 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
 
   const tanggalKini = hitungHariIni();
   const selesaiBulanIni = ((tugasSelesai ?? []) as unknown as Tugas[]).filter(
-    (t) => t.jenis !== "Berjalan",
+    (t) => t.jenis !== BERULANG,
   );
   const { tugas: masihBerjalan, berjalan: peranBerjalan } = pisahJenis(
     (tugasTerbuka ?? []) as unknown as Tugas[],
@@ -275,9 +276,9 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
           />
           <Angka label="Lewat tenggat" nilai={tugasLewat.length} />
           <Angka
-            label="Peran berjalan"
+            label="Tugas berulang"
             nilai={peranBerjalan.length}
-            keterangan="tanpa garis selesai"
+            keterangan="berulang tiap hari tertentu"
           />
         </div>
 

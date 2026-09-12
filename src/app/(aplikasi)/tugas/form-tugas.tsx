@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import Ikon from "@/components/ikon";
 import { tambahTugas } from "@/lib/tugas-actions";
 import { hasilAwal } from "@/lib/hasil";
-import { HARI_PILIHAN, PRIORITAS } from "@/lib/tugas";
+import { BERULANG, HARI_PILIHAN, JENIS_KETERANGAN, PRIORITAS, SEKALI } from "@/lib/tugas";
 
 const gaya =
   "rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -72,15 +72,15 @@ export function FormTugas({
           <input
             type="radio"
             name="jenis"
-            value="Tugas"
+            value={SEKALI}
             defaultChecked
             onChange={() => setBerjalan(false)}
             className="mt-0.5 accent-hijau"
           />
           <span>
-            Tugas
+            {SEKALI}
             <span className="block text-xs text-tinta-3">
-              Ada hasilnya, ada selesainya
+              {JENIS_KETERANGAN[SEKALI]}
             </span>
           </span>
         </label>
@@ -88,20 +88,20 @@ export function FormTugas({
           <input
             type="radio"
             name="jenis"
-            value="Berjalan"
+            value={BERULANG}
             onChange={() => setBerjalan(true)}
             className="mt-0.5 accent-hijau"
           />
           <span>
-            Peran berjalan
+            {BERULANG}
             <span className="block text-xs text-tinta-3">
-              Jabatan atau pekerjaan tanpa garis selesai
+              {JENIS_KETERANGAN[BERULANG]}
             </span>
           </span>
         </label>
       </fieldset>
 
-      {/* Peran yang berjalan sering punya iramanya sendiri — update
+      {/* Tugas berulang punya iramanya sendiri — update
           jadwal dokter tiap Senin sampai Jumat sore dan Minggu sore.
           Tanpa tempat menuliskan harinya, irama itu cuma ada di
           kepala, dan yang cuma ada di kepala itulah yang terlupa. */}
@@ -119,7 +119,7 @@ export function FormTugas({
             ))}
           </div>
           <p className="mt-2 text-xs text-tinta-3">
-            Boleh dikosongkan. Kalau diisi, peran ini naik ke daftar hari ini
+            Boleh dikosongkan. Kalau diisi, tugas ini naik ke daftar hari ini
             setiap hari yang dicentang, sampai ditandai sudah dikerjakan.
           </p>
         </fieldset>
@@ -161,7 +161,7 @@ export function FormTugas({
           <input type="date" name="tanggal_mulai" defaultValue={hariIni} className={gaya} />
         </label>
 
-        {/* Peran berjalan tidak punya tenggat — database menolaknya.
+        {/* Yang berulang tidak punya tenggat — database menolaknya.
             Kotaknya ikut disembunyikan, bukan sekadar diabaikan:
             isian yang boleh diisi tapi tidak berpengaruh apa-apa
             lebih membingungkan daripada isian yang tidak ada. */}
@@ -199,7 +199,7 @@ export function FormTugas({
         </button>
         <span className="text-xs text-tinta-3">
           {berjalan
-            ? "Peran berjalan tidak punya tenggat. Yang menentukan kapan ia muncul adalah hari kerjanya di atas."
+            ? "Yang berulang tidak punya tenggat. Kapan ia muncul ditentukan hari kerjanya di atas."
             : anggota.length > 0
               ? "Tanpa tenggat pun boleh. Tugas yang dititipkan ke anggota langsung muncul di lonceng dan daftar tugasnya."
               : "Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah lewat tanggal mulainya."}

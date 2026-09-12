@@ -90,7 +90,7 @@ export default async function HalamanTugas() {
   };
   for (const t of terbuka) kelompok[kelompokTugas(t, kini)].push(t);
 
-  // Peran berjalan yang hari ini memang harinya ikut naik ke daftar
+  // Tugas berulang yang hari ini memang harinya ikut naik ke daftar
   // hari ini — itulah gunanya mencatat harinya. Yang sudah ditandai
   // turun lagi ke bagiannya sendiri.
   const berjalanHariIni = berjalan.filter((t) => jatuhHariIni(t, kini));
@@ -173,15 +173,15 @@ export default async function HalamanTugas() {
         <section className="flex flex-col gap-3">
           <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
             <Ikon nama="pengguna" ukuran={14} />
-            Peran yang berjalan terus
+            Tugas berulang
             <span className="font-normal normal-case tracking-normal text-tinta-3">
               {berjalan.length}
             </span>
           </h2>
           <p className="-mt-1 text-sm text-tinta-2">
-            Tetap tercatat dan tetap terlihat Koordinator sebagai beban yang
-            Anda tanggung, tapi tidak ikut ditanya tiap sore — tidak ada hari
-            ia selesai.
+            Kembali lagi tiap hari yang dipilih. Yang harinya jatuh hari ini
+            naik ke daftar di atas; sisanya menunggu gilirannya. Tetap terlihat
+            Koordinator sebagai beban yang Anda tanggung.
           </p>
           <ul className="flex flex-col gap-2">
             {berjalan

@@ -4,6 +4,7 @@ import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { bolehAkses } from "@/lib/akses";
 import {
+  BERULANG,
   MASIH_TERBUKA,
   hariIni as hitungHariIni,
   kelompokTugas,
@@ -93,7 +94,7 @@ function PanelTugas({
 
       {berjalan.length > 0 && (
         <p className="mt-2 text-xs text-tinta-3">
-          Sambil menanggung {berjalan.length} peran berjalan:{" "}
+          Sambil menanggung {berjalan.length} tugas berulang:{" "}
           {berjalan.map((t) => t.judul).join(" · ")}
         </p>
       )}
@@ -139,8 +140,8 @@ function PanelTugas({
                   <li key={t.id} className="border-l-2 border-garis pl-3 text-sm">
                     {t.judul}
                     <span className="ml-2 text-xs text-tinta-3">
-                      {t.jenis === "Berjalan"
-                        ? "peran berjalan — jatuh hari ini"
+                      {t.jenis === BERULANG
+                        ? "berulang — jatuh hari ini"
                         : t.status === "Dikerjakan"
                           ? "sedang dikerjakan"
                           : sebutTenggat(t.tenggat, kini)}
@@ -281,7 +282,7 @@ export default async function Beranda() {
   const tugasLewat = daftarTugas.filter((t) => kelompokTugas(t, kini) === "lewat");
   const tugasHariIni = [
     ...daftarTugas.filter((t) => kelompokTugas(t, kini) === "hari-ini"),
-    // Peran berjalan yang hari ini memang harinya ikut disebut —
+    // Tugas berulang yang hari ini memang harinya ikut disebut —
     // itulah gunanya mencatat harinya.
     ...berjalan.filter((t) => jatuhHariIni(t, kini)),
   ];

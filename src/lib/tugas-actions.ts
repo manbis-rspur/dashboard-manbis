@@ -6,7 +6,7 @@ import { punyaIzin } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
-import { JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
+import { BERULANG, JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
 import type { Hasil } from "@/lib/hasil";
 
 function isi(formData: FormData, nama: string) {
@@ -19,13 +19,13 @@ function isiAtauNull(formData: FormData, nama: string) {
 }
 
 /**
- * Hari kerja yang dicentang, hanya untuk peran yang berjalan.
+ * Hari kerja yang dicentang, hanya untuk yang berulang.
  *
  * Tugas yang punya garis selesai sudah punya tenggat; memberinya
  * hari kerja berulang cuma membingungkan, dan database menolaknya.
  */
 function hariTerpilih(formData: FormData, jenis: string): number[] | null {
-  if (jenis !== "Berjalan") return null;
+  if (jenis !== BERULANG) return null;
 
   const angka = formData
     .getAll("hari")
@@ -57,9 +57,9 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
     ? jenisDiminta
     : "Tugas";
 
-  // Peran yang berjalan tidak punya tenggat, dan memberinya tenggat
+  // Yang berulang tidak punya tenggat, dan memberinya tenggat
   // justru menyesatkan — seolah ada hari ia berhenti.
-  const tenggat = jenis === "Berjalan" ? null : isiAtauNull(formData, "tenggat");
+  const tenggat = jenis === BERULANG ? null : isiAtauNull(formData, "tenggat");
 
   if (tenggat && mulai !== "" && tenggat < mulai) {
     return {
@@ -129,9 +129,9 @@ export async function ubahStatusTugas(formData: FormData) {
 }
 
 /**
- * Menandai peran berjalan sudah dikerjakan untuk hari ini.
+ * Menandai tugas berulang sudah dikerjakan untuk hari ini.
  *
- * Yang disimpan tanggalnya, bukan statusnya. Peran yang berjalan
+ * Yang disimpan tanggalnya, bukan statusnya. Tugas berulang
  * tidak pernah berubah jadi selesai — ia cuma sudah dikerjakan hari
  * ini, dan besok menunggu lagi.
  */
@@ -169,7 +169,7 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
   const jenis = (JENIS as readonly string[]).includes(jenisDiminta)
     ? jenisDiminta
     : "Tugas";
-  const tenggat = jenis === "Berjalan" ? null : isiAtauNull(formData, "tenggat");
+  const tenggat = jenis === BERULANG ? null : isiAtauNull(formData, "tenggat");
 
   if (tenggat && mulai !== "" && tenggat < mulai) {
     return {
