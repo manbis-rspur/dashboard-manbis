@@ -16,10 +16,22 @@ const NAMA_BULAN = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 
-/** Batas awal dan akhir satu bulan, dalam waktu setempat. */
+/**
+ * Batas awal dan akhir satu bulan, menurut WIB.
+ *
+ * Selisihnya ditulis tegas, tidak dibiarkan mengikuti jam mesin.
+ * Peladen Vercel berjalan di UTC: kalau batasnya dihitung di sana,
+ * tanggal 1 bermula pukul 07.00 WIB — dan pekerjaan yang ditutup
+ * pukul 6 pagi tanggal 1 akan terhitung ke rekap bulan sebelumnya.
+ */
 function rentang(bulan: number, tahun: number) {
-  const awal = new Date(tahun, bulan - 1, 1);
-  const akhir = new Date(tahun, bulan, 1);
+  const dua = (n: number) => String(n).padStart(2, "0");
+
+  const awal = new Date(`${tahun}-${dua(bulan)}-01T00:00:00+07:00`);
+  const tahunAkhir = bulan === 12 ? tahun + 1 : tahun;
+  const bulanAkhir = bulan === 12 ? 1 : bulan + 1;
+  const akhir = new Date(`${tahunAkhir}-${dua(bulanAkhir)}-01T00:00:00+07:00`);
+
   return { awal: awal.toISOString(), akhir: akhir.toISOString() };
 }
 

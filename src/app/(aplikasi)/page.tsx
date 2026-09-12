@@ -286,7 +286,12 @@ export default async function Beranda() {
     ...berjalan.filter((t) => jatuhHariIni(t, kini)),
   ];
 
+  // Zonanya ditulis tegas. Peladen Vercel berjalan di UTC, jadi
+  // antara pukul 00.00 dan 07.00 WIB tanggal sapaan akan tertinggal
+  // sehari dari daftar tugas di bawahnya — dan yang membacanya pagi
+  // buta akan mengira daftarnya yang salah.
   const hariIni = sekarang.toLocaleDateString("id-ID", {
+    timeZone: "Asia/Jakarta",
     weekday: "long",
     day: "numeric",
     month: "long",
