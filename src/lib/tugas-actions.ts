@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
 import { BERULANG, JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
-import type { Hasil } from "@/lib/hasil";
+import type { Hasil, HasilTugas } from "@/lib/hasil";
 
 function isi(formData: FormData, nama: string) {
   return String(formData.get(nama) ?? "").trim();
@@ -58,12 +58,17 @@ function segarkan() {
 }
 
 /** Menambah satu tugas ke daftar sendiri. */
-export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
+export async function tambahTugas(
+  _s: HasilTugas,
+  formData: FormData,
+): Promise<HasilTugas> {
+  const gagal = (pesan: string): HasilTugas => ({ pesan, berhasil: null, id: null });
+
   const pengguna = await getPenggunaAktif();
-  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", berhasil: null };
+  if (!pengguna) return gagal("Sesi Anda sudah berakhir. Masuk lagi.");
 
   const judul = isi(formData, "judul");
-  if (judul === "") return { pesan: "Judul tugas harus diisi.", berhasil: null };
+  if (judul === "") return gagal("Judul tugas harus diisi.");
 
   const mulai = isi(formData, "tanggal_mulai");
   const jenisDiminta = isi(formData, "jenis");
@@ -76,10 +81,7 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
   const tenggat = jenis === BERULANG ? null : isiAtauNull(formData, "tenggat");
 
   if (tenggat && mulai !== "" && tenggat < mulai) {
-    return {
-      pesan: "Tenggatnya lebih awal daripada tanggal mulai — kemungkinan salah ketik.",
-      berhasil: null,
-    };
+    return gagal("Tenggatnya lebih awal daripada tanggal mulai — kemungkinan salah ketik.");
   }
 
   const prioritas = isi(formData, "prioritas");
@@ -96,7 +98,9 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
       : pengguna.id;
 
   const supabase = await createClient();
-  const { error } = await supabase.from("tugas").insert({
+  const { data: baru, error } = await supabase
+    .from("tugas")
+    .insert({
     untuk,
     judul,
     keterangan: isiAtauNull(formData, "keterangan"),
@@ -106,15 +110,18 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
     ...iramaTerpilih(formData, jenis),
     prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
     dibuat_oleh: pengguna.id,
-  });
+    })
+    .select("id")
+    .single();
 
-  if (error) return { pesan: `Gagal disimpan: ${error.message}`, berhasil: null };
+  if (error) return gagal(`Gagal disimpan: ${error.message}`);
 
   segarkan();
   revalidatePath("/tugas/unit");
 
   return {
     pesan: null,
+    id: baru.id,
     berhasil:
       untuk === pengguna.id
         ? `"${judul}" masuk daftar.`

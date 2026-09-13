@@ -14,3 +14,12 @@ export type HasilKomplain = { pesan: string | null; kode: string | null };
 export const komplainAwal: HasilKomplain = { pesan: null, kode: null };
 
 export type Balasan = { ok: boolean; pesan: string };
+
+/**
+ * Hasil penambahan tugas, berikut id barisnya.
+ *
+ * Idnya dibutuhkan supaya lampiran bisa langsung menempel pada tugas
+ * yang baru saja dibuat, tanpa orangnya harus membuka barisnya lagi.
+ */
+export type HasilTugas = { pesan: string | null; berhasil: string | null; id: number | null };
+export const tugasAwal: HasilTugas = { pesan: null, berhasil: null, id: null };

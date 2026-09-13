@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import Ikon from "@/components/ikon";
-import { tambahTugas } from "@/lib/tugas-actions";
-import { hasilAwal } from "@/lib/hasil";
+import { catatLampiran, siapkanLampiran, tambahTugas } from "@/lib/tugas-actions";
+import { tugasAwal } from "@/lib/hasil";
+import { unggahLewatIzin } from "@/lib/unggah-berkas";
+import { ACCEPT_LAMPIRAN, MAKS_LAMPIRAN, jenisLampiranDiterima, ukuranRapi } from "@/lib/lampiran";
 import { BERULANG, JENIS_KETERANGAN, PRIORITAS, SEKALI } from "@/lib/tugas";
 import { PilihIrama } from "./pilih-irama";
 
@@ -29,8 +31,9 @@ type Isian = {
  * Sesudah satu tugas tersimpan, formulirnya dipasang ulang dari
  * bersih tapi tetap terbuka: menulis tugas jarang cuma satu, dan
  * membuka ulang tombolnya tiap kali cuma menambah langkah. Dipasang
- * ulang, bukan dikosongkan satu per satu — itu satu-satunya cara
- * useActionState melupakan hasil sebelumnya.
+ * ulang, bukan dikosongkan satu per satu — kotak isian yang tidak
+ * dikendalikan React tidak punya cara lain dibersihkan, dan yang
+ * tertinggal akan ikut terkirim pada tugas berikutnya.
  */
 export function FormTugas(isian: Isian) {
   const [buka, setBuka] = useState(false);
@@ -79,19 +82,91 @@ function IsiFormulir({
   tutup: () => void;
   selesai: (pesan: string) => void;
 }) {
-  const [hasil, kirim, sedang] = useActionState(tambahTugas, hasilAwal);
   const [berjalan, setBerjalan] = useState(false);
+  const [pesan, setPesan] = useState<string | null>(null);
+  const [tahap, setTahap] = useState<string | null>(null);
+  const [sedang, mulai] = useTransition();
 
-  // Wajib di dalam useEffect: memasang ulang formulir sambil
-  // menggambar berarti mengubah komponen induk di tengah
-  // penggambaran, dan React menolaknya diam-diam.
-  useEffect(() => {
-    if (hasil.berhasil) selesai(hasil.berhasil);
-  }, [hasil.berhasil, selesai]);
+  /**
+   * Tugasnya dibuat dulu, lampirannya menyusul.
+   *
+   * Urutannya memang harus begitu: lampiran menempel pada sebuah
+   * tugas, dan tugas itu baru punya nomor setelah tersimpan. Kalau
+   * unggahannya gagal, tugasnya tetap ada — tinggal dilampirkan
+   * belakangan lewat panah di barisnya, tidak perlu diketik ulang.
+   */
+  async function kirim(formData: FormData) {
+    setPesan(null);
+
+    const berkas = formData.get("berkas");
+    const adaBerkas = berkas instanceof File && berkas.size > 0;
+    const tautan = String(formData.get("tautan") ?? "").trim();
+    formData.delete("berkas");
+    formData.delete("tautan");
+
+    if (adaBerkas) {
+      if (!jenisLampiranDiterima(berkas.name)) {
+        setPesan("Jenis lampiran itu belum didukung. Video cukup ditempel tautannya.");
+        return;
+      }
+      if (berkas.size > MAKS_LAMPIRAN) {
+        setPesan(
+          `Lampirannya ${ukuranRapi(berkas.size)} — melebihi batas ${ukuranRapi(MAKS_LAMPIRAN)}.`,
+        );
+        return;
+      }
+    }
+
+    setTahap("Menyimpan tugas…");
+    const hasil = await tambahTugas(tugasAwal, formData);
+
+    if (hasil.pesan || !hasil.id) {
+      setTahap(null);
+      setPesan(hasil.pesan ?? "Tugasnya gagal disimpan.");
+      return;
+    }
+
+    if (adaBerkas || tautan) {
+      const lampiran = new FormData();
+      lampiran.set("tugas_id", String(hasil.id));
+
+      if (adaBerkas) {
+        setTahap(`Mengunggah ${ukuranRapi(berkas.size)}…`);
+        const naik = await unggahLewatIzin(berkas, (nama) =>
+          siapkanLampiran(hasil.id as number, nama),
+        );
+
+        if (naik.jalur === null) {
+          setTahap(null);
+          setPesan(`Tugasnya tersimpan, tapi lampirannya gagal: ${naik.pesan}`);
+          selesai(hasil.berhasil ?? "Tugas tersimpan.");
+          return;
+        }
+
+        lampiran.set("jalur", naik.jalur);
+        lampiran.set("berkas_nama", berkas.name);
+        lampiran.set("berkas_ukuran", String(berkas.size));
+      }
+
+      if (tautan) lampiran.set("tautan", tautan);
+
+      setTahap("Melampirkan…");
+      const catat = await catatLampiran({ pesan: null, berhasil: null }, lampiran);
+      if (catat.pesan) {
+        setTahap(null);
+        setPesan(`Tugasnya tersimpan, tapi lampirannya gagal: ${catat.pesan}`);
+        selesai(hasil.berhasil ?? "Tugas tersimpan.");
+        return;
+      }
+    }
+
+    setTahap(null);
+    selesai(hasil.berhasil ?? "Tugas tersimpan.");
+  }
 
   return (
     <form
-      action={kirim}
+      action={(formData) => mulai(() => kirim(formData))}
       className="flex flex-col gap-3 rounded-xl border border-garis bg-permukaan p-5 shadow-lembut"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -232,7 +307,36 @@ function IsiFormulir({
         </label>
       </div>
 
-      {hasil.pesan && <p className="text-sm text-merah">{hasil.pesan}</p>}
+      {/* Lampiran konsep boleh disertakan sejak awal. Tugasnya
+          dibuat dulu, lampirannya menyusul — lampiran menempel pada
+          sebuah tugas, dan tugas itu baru punya nomor setelah
+          tersimpan. */}
+      <fieldset className="rounded-lg border border-garis px-3 py-2.5">
+        <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
+          Lampiran konsep
+        </legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <input
+            type="file"
+            name="berkas"
+            accept={ACCEPT_LAMPIRAN}
+            className={`${gaya} file:mr-3 file:rounded file:border-0 file:bg-permukaan-2 file:px-3 file:py-1.5 file:text-sm file:font-medium`}
+          />
+          <input
+            name="tautan"
+            type="url"
+            placeholder="Tautan video atau bahan di Drive — https://…"
+            className={gaya}
+          />
+        </div>
+        <p className="mt-2 text-xs text-tinta-3">
+          Boleh dikosongkan. Dokumen, desain, dan gambar sampai{" "}
+          {ukuranRapi(MAKS_LAMPIRAN)}; video cukup ditempel tautannya. Bisa
+          ditambah lagi kapan saja lewat panah di baris tugasnya.
+        </p>
+      </fieldset>
+
+      {pesan && <p className="text-sm text-merah">{pesan}</p>}
 
       <div className="flex flex-wrap items-center gap-3">
         <button
@@ -240,7 +344,7 @@ function IsiFormulir({
           disabled={sedang}
           className="w-fit rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
-          {sedang ? "Menyimpan…" : "Tambahkan"}
+          {sedang ? (tahap ?? "Menyimpan…") : "Tambahkan"}
         </button>
         <span className="text-xs text-tinta-3">
           {berjalan

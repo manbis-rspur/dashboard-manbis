@@ -94,8 +94,13 @@ export function LampiranTugas({
     setBerhasil(hasil.berhasil);
   }
 
+  // Dibingkai tersendiri, bukan sekadar dipisah garis. Bagian ini
+  // punya tombolnya sendiri, dan tombol "Simpan perubahan" di atasnya
+  // tidak menyimpan lampiran — tanpa bingkai, keduanya mudah dikira
+  // satu formulir, lalu lampirannya ditinggal tanpa ada yang memberi
+  // tahu.
   return (
-    <div className="mt-4 border-t border-garis pt-4">
+    <div className="mt-4 rounded-lg border border-garis bg-kertas p-4">
       <p className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
         <Ikon nama="publikasi" ukuran={13} />
         Lampiran hasil
