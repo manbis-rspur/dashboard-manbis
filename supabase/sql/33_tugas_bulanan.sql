@@ -20,13 +20,15 @@
 alter table tugas
     add column if not exists tanggal_bulan smallint[];
 
+-- Daftar tanggalnya ditulis apa adanya, bukan dibangkitkan dengan
+-- generate_series: Postgres menolak subquery di dalam check, dan
+-- penolakannya baru muncul saat berkas ini dijalankan.
 alter table tugas drop constraint if exists tugas_tanggal_bulan_wajar;
 alter table tugas add constraint tugas_tanggal_bulan_wajar
     check (
         tanggal_bulan is null
         or (array_length(tanggal_bulan, 1) between 1 and 31
-            and tanggal_bulan <@ (select array_agg(n)::smallint[]
-                                    from generate_series(1, 31) as n))
+            and tanggal_bulan <@ array[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]::smallint[])
     );
 
 -- Irama hanya bermakna bagi yang berulang.
