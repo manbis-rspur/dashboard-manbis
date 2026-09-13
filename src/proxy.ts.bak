@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/env";
 
 /** Halaman yang boleh dibuka tanpa login. */
-const TERBUKA = ["/login", "/auth", "/tanpa-akses", "/periksa-kunci-sementara"];
+const TERBUKA = ["/login", "/auth", "/tanpa-akses"];
 
 /**
  * Berjalan sebelum setiap halaman dibuka:
