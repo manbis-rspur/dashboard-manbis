@@ -39,7 +39,16 @@ export async function unggahLewatIzin(
     });
 
   if (error) {
-    return { jalur: null, pesan: `Berkasnya gagal naik: ${error.message}` };
+    // Nama dan ukuran berkasnya ikut disebut. Pesan "gagal naik"
+    // saja tidak menunjuk apa pun; yang menyelamatkan waktu justru
+    // keterangan yang membuat orang bisa menyebutkan keadaannya
+    // tanpa perlu mengulang percobaan.
+    return {
+      jalur: null,
+      pesan:
+        `Berkasnya gagal naik: ${error.message}. ` +
+        `(${berkas.name}, ${ukuranRapi(berkas.size)}, ${berkas.type || "jenis tidak dikenali"})`,
+    };
   }
 
   return { jalur: izin.jalur, pesan: null };
