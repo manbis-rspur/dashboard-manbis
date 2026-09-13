@@ -4,7 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import Ikon from "@/components/ikon";
 import { tambahTugas } from "@/lib/tugas-actions";
 import { hasilAwal } from "@/lib/hasil";
-import { BERULANG, HARI_PILIHAN, JENIS_KETERANGAN, PRIORITAS, SEKALI } from "@/lib/tugas";
+import { BERULANG, JENIS_KETERANGAN, PRIORITAS, SEKALI } from "@/lib/tugas";
+import { PilihIrama } from "./pilih-irama";
 
 const gaya =
   "rounded-lg border border-garis bg-permukaan px-3 py-2 text-sm outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -168,29 +169,7 @@ function IsiFormulir({
         </label>
       </fieldset>
 
-      {/* Tugas berulang punya iramanya sendiri — update
-          jadwal dokter tiap Senin sampai Jumat sore dan Minggu sore.
-          Tanpa tempat menuliskan harinya, irama itu cuma ada di
-          kepala, dan yang cuma ada di kepala itulah yang terlupa. */}
-      {berjalan && (
-        <fieldset className="rounded-lg border border-garis px-3 py-2.5">
-          <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
-            Hari kerjanya
-          </legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {HARI_PILIHAN.map((h) => (
-              <label key={h.n} className="flex items-center gap-1.5 text-sm">
-                <input type="checkbox" name="hari" value={h.n} className="accent-hijau" />
-                {h.label}
-              </label>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-tinta-3">
-            Boleh dikosongkan. Kalau diisi, tugas ini naik ke daftar hari ini
-            setiap hari yang dicentang, sampai ditandai sudah dikerjakan.
-          </p>
-        </fieldset>
-      )}
+      {berjalan && <PilihIrama />}
 
       <div
         className={`grid gap-3 ${
@@ -265,7 +244,7 @@ function IsiFormulir({
         </button>
         <span className="text-xs text-tinta-3">
           {berjalan
-            ? "Yang berulang tidak punya tenggat. Kapan ia muncul ditentukan hari kerjanya di atas."
+            ? "Yang berulang tidak punya tenggat. Kapan ia muncul ditentukan iramanya di atas."
             : anggota.length > 0
               ? "Tanpa tenggat pun boleh. Tugas yang dititipkan ke anggota langsung muncul di lonceng dan daftar tugasnya."
               : "Tanpa tenggat pun boleh — tugasnya tetap muncul hari ini selama sudah lewat tanggal mulainya."}

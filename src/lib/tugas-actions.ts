@@ -18,22 +18,37 @@ function isiAtauNull(formData: FormData, nama: string) {
   return nilai === "" ? null : nilai;
 }
 
-/**
- * Hari kerja yang dicentang, hanya untuk yang berulang.
- *
- * Tugas yang punya garis selesai sudah punya tenggat; memberinya
- * hari kerja berulang cuma membingungkan, dan database menolaknya.
- */
-function hariTerpilih(formData: FormData, jenis: string): number[] | null {
-  if (jenis !== BERULANG) return null;
-
+function kumpulkanAngka(formData: FormData, nama: string, maks: number): number[] {
   const angka = formData
-    .getAll("hari")
-    .map((h) => Number(h))
-    .filter((h) => Number.isInteger(h) && h >= 1 && h <= 7);
+    .getAll(nama)
+    .map((n) => Number(n))
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= maks);
 
-  const unik = [...new Set(angka)].sort((a, b) => a - b);
-  return unik.length > 0 ? unik : null;
+  return [...new Set(angka)].sort((a, b) => a - b);
+}
+
+/**
+ * Irama sebuah tugas berulang: mingguan atau bulanan, salah satu
+ * saja.
+ *
+ * Yang tidak dipilih dikosongkan, bukan dibiarkan apa adanya. Kalau
+ * sisa pilihan lama ditinggalkan, sebuah tugas bisa punya dua irama
+ * sekaligus dan tidak ada yang bisa menjawab "sebenarnya ini muncul
+ * kapan" tanpa membuka kodenya — dan database memang menolaknya.
+ *
+ * Tugas yang punya garis selesai tidak punya irama sama sekali;
+ * tenggatnya sudah menjawab itu.
+ */
+function iramaTerpilih(formData: FormData, jenis: string) {
+  if (jenis !== BERULANG) return { hari: null, tanggal_bulan: null };
+
+  if (isi(formData, "pola") === "bulanan") {
+    const tanggal = kumpulkanAngka(formData, "tanggal_bulan", 31);
+    return { hari: null, tanggal_bulan: tanggal.length > 0 ? tanggal : null };
+  }
+
+  const hari = kumpulkanAngka(formData, "hari", 7);
+  return { hari: hari.length > 0 ? hari : null, tanggal_bulan: null };
 }
 
 function segarkan() {
@@ -88,7 +103,7 @@ export async function tambahTugas(_s: Hasil, formData: FormData): Promise<Hasil>
     ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
     tenggat,
     jenis,
-    hari: hariTerpilih(formData, jenis),
+    ...iramaTerpilih(formData, jenis),
     prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
     dibuat_oleh: pengguna.id,
   });
@@ -186,7 +201,7 @@ export async function ubahTugas(_s: Hasil, formData: FormData): Promise<Hasil> {
       ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
       tenggat,
       jenis,
-      hari: hariTerpilih(formData, jenis),
+      ...iramaTerpilih(formData, jenis),
       prioritas: isi(formData, "prioritas") || "Sedang",
       status: isi(formData, "status") || "Belum",
       catatan_hasil: isiAtauNull(formData, "catatan_hasil"),

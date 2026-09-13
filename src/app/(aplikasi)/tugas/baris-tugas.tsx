@@ -9,16 +9,16 @@ import {
   ubahTugas,
 } from "@/lib/tugas-actions";
 import { LampiranTugas } from "./lampiran-tugas";
+import { PilihIrama } from "./pilih-irama";
 import type { Lampiran } from "@/lib/lampiran";
 import { hasilAwal } from "@/lib/hasil";
 import {
   BERULANG,
-  HARI_PILIHAN,
   JENIS,
   PRIORITAS,
   STATUS,
   jatuhHariIni,
-  sebutHari,
+  sebutIrama,
   sebutTenggat,
   warnaPrioritas,
   warnaStatus,
@@ -88,7 +88,7 @@ export function BarisTugas({
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className={lewat ? "font-semibold text-merah" : "text-tinta-3"}>
                 {berjalan
-                  ? sebutHari(t.hari) || "berulang, hari belum dipilih"
+                  ? sebutIrama(t) || "berulang, iramanya belum dipilih"
                   : sebutTenggat(t.tenggat, hariIni)}
               </span>
               {sudahHariIni && (
@@ -256,25 +256,10 @@ export function BarisTugas({
             </div>
 
             {berulangDipilih && (
-              <fieldset className="rounded-lg border border-garis px-3 py-2.5">
-                <legend className="px-1 text-[0.65rem] font-semibold uppercase tracking-[0.13em] text-tinta-3">
-                  Hari kerjanya
-                </legend>
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
-                  {HARI_PILIHAN.map((h) => (
-                    <label key={h.n} className="flex items-center gap-1.5 text-sm">
-                      <input
-                        type="checkbox"
-                        name="hari"
-                        value={h.n}
-                        defaultChecked={(t.hari ?? []).includes(h.n)}
-                        className="accent-hijau"
-                      />
-                      {h.label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <PilihIrama
+                hariAwal={t.hari ?? []}
+                tanggalAwal={t.tanggal_bulan ?? []}
+              />
             )}
 
             <textarea

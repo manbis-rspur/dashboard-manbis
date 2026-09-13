@@ -9,7 +9,7 @@ import {
   hariIni as hitungHariIni,
   kelompokTugas,
   pisahJenis,
-  sebutHari,
+  sebutIrama,
   sebutTenggat,
   warnaStatus,
   type Tugas,
@@ -51,7 +51,7 @@ export default async function PapanTugasUnit() {
     supabase
       .from("tugas")
       .select(
-        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan",
+        "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, tanggal_bulan, terakhir_dikerjakan",
       )
       .order("tenggat", { ascending: true, nullsFirst: false })
       .limit(500),
@@ -165,8 +165,8 @@ export default async function PapanTugasUnit() {
                 Berulang:{" "}
                 {peran
                   .map((t) => {
-                    const h = sebutHari(t.hari);
-                    return h ? `${t.judul} (${h})` : t.judul;
+                    const irama = sebutIrama(t);
+                    return irama ? `${t.judul} (${irama})` : t.judul;
                   })
                   .join(" · ")}
               </p>

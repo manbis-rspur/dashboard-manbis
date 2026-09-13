@@ -53,7 +53,7 @@ export default async function HalamanTugas() {
   const { data } = await supabase
     .from("tugas")
     .select(
-      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan",
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, tanggal_bulan, terakhir_dikerjakan",
     )
     .eq("untuk", pengguna.id)
     .order("tenggat", { ascending: true, nullsFirst: false })

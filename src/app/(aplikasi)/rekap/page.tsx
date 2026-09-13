@@ -124,7 +124,7 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
   const { data: tugasSelesai } = await supabase
     .from("tugas")
     .select(
-      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan, pemilik:untuk(nama)",
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, tanggal_bulan, terakhir_dikerjakan, pemilik:untuk(nama)",
     )
     .eq("status", "Selesai")
     .gte("selesai_pada", awal)
@@ -134,7 +134,7 @@ export default async function HalamanRekap({ searchParams }: PageProps<"/rekap">
   const { data: tugasTerbuka } = await supabase
     .from("tugas")
     .select(
-      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, terakhir_dikerjakan, pemilik:untuk(nama)",
+      "id, untuk, judul, keterangan, tanggal_mulai, tenggat, prioritas, status, catatan_hasil, selesai_pada, jenis, hari, tanggal_bulan, terakhir_dikerjakan, pemilik:untuk(nama)",
     )
     .in("status", MASIH_TERBUKA)
     .limit(500);

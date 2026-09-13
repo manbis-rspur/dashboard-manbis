@@ -21,6 +21,8 @@ export type Tugas = {
   jenis: string;
   /** Hari kerja tugas berulang, 1 Senin sampai 7 Minggu. */
   hari: number[] | null;
+  /** Tanggal dalam bulan, 1 sampai 31. Dipakai bila iramanya bulanan. */
+  tanggal_bulan: number[] | null;
   /** Tanggal terakhir tugas berulang ditandai sudah dikerjakan. */
   terakhir_dikerjakan: string | null;
 };
@@ -155,6 +157,43 @@ export function nomorHari(tanggal: string): number {
   return d === 0 ? 7 : d;
 }
 
+/** Banyaknya hari pada bulan sebuah tanggal YYYY-MM-DD. */
+export function hariDalamBulan(tanggal: string): number {
+  const [tahun, bulan] = tanggal.split("-").map(Number);
+  // Tanggal 0 bulan berikutnya = hari terakhir bulan ini.
+  return new Date(Date.UTC(tahun, bulan, 0)).getUTCDate();
+}
+
+/**
+ * Apakah tanggal hari ini termasuk irama bulanan yang dipilih.
+ *
+ * Tanggal yang tidak ada pada bulan berjalan jatuh di hari
+ * terakhirnya: yang memilih tanggal 31 tetap ditagih pada 28
+ * Februari. Kalau tidak, tugas itu diam-diam lewat empat bulan
+ * dalam setahun — dan diam adalah cara paling buruk sebuah
+ * pengingat gagal.
+ */
+export function jatuhTanggalBulan(tanggal: number[], kini: string): boolean {
+  const hariIniTanggal = Number(kini.slice(8, 10));
+  const akhir = hariDalamBulan(kini);
+
+  return tanggal.some(
+    (t) => t === hariIniTanggal || (t > akhir && hariIniTanggal === akhir),
+  );
+}
+
+/** Menyebut irama bulanan: "tanggal 5 · 25". */
+export function sebutTanggalBulan(tanggal: number[] | null): string {
+  if (!tanggal || tanggal.length === 0) return "";
+  const urut = [...new Set(tanggal)].sort((a, b) => a - b);
+  return `tanggal ${urut.join(" · ")}`;
+}
+
+/** Menyebut irama sebuah tugas berulang, mingguan maupun bulanan. */
+export function sebutIrama(t: Tugas): string {
+  return sebutHari(t.hari) || sebutTanggalBulan(t.tanggal_bulan);
+}
+
 /**
  * Apakah tugas berulang ini jatuh hari ini dan belum ditandai.
  *
@@ -171,9 +210,15 @@ export function jatuhHariIni(t: Tugas, kini = hariIni()): boolean {
   // Pekerjaan rutin pun suatu saat berpindah tangan, dan sejak saat
   // itu tidak pantas lagi menagih tiap pagi.
   if (!MASIH_TERBUKA.includes(t.status)) return false;
-  if (!t.hari || t.hari.length === 0) return false;
-  if (!t.hari.includes(nomorHari(kini))) return false;
-  return t.terakhir_dikerjakan !== kini;
+  if (t.terakhir_dikerjakan === kini) return false;
+
+  if (t.hari && t.hari.length > 0) return t.hari.includes(nomorHari(kini));
+  if (t.tanggal_bulan && t.tanggal_bulan.length > 0) {
+    return jatuhTanggalBulan(t.tanggal_bulan, kini);
+  }
+
+  // Belum diatur iramanya — belum bisa menagih apa pun.
+  return false;
 }
 
 /** Menyebut hari kerja dengan ringkas: "Sen–Jum · Min". */
