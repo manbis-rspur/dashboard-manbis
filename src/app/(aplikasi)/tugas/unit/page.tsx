@@ -11,6 +11,7 @@ import {
   pisahJenis,
   sebutIrama,
   sebutTenggat,
+  tingkatDesakan,
   warnaStatus,
   type Tugas,
 } from "@/lib/tugas";
@@ -182,7 +183,9 @@ export default async function PapanTugasUnit() {
                   <li
                     key={t.id}
                     className={`flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 pl-3 ${
-                      kelompokTugas(t, kini) === "lewat" ? "border-merah" : "border-garis"
+                      tingkatDesakan(t, kini) === "biasa"
+                        ? "border-garis"
+                        : "border-merah"
                     }`}
                   >
                     <span className="min-w-0 flex-1 text-sm">
@@ -195,9 +198,9 @@ export default async function PapanTugasUnit() {
                     </span>
                     <span
                       className={`text-xs ${
-                        kelompokTugas(t, kini) === "lewat"
-                          ? "font-semibold text-merah"
-                          : "text-tinta-3"
+                        tingkatDesakan(t, kini) === "biasa"
+                          ? "text-tinta-3"
+                          : "font-semibold text-merah"
                       }`}
                     >
                       {sebutTenggat(t.tenggat, kini)}

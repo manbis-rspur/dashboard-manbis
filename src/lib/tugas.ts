@@ -246,3 +246,34 @@ export function sebutHari(hari: number[] | null): string {
 
   return potongan.join(" · ");
 }
+
+
+/**
+ * Seberapa mendesak sebuah tugas, untuk menentukan warnanya.
+ *
+ *   "lewat"    — tenggatnya sudah terlewat
+ *   "hari-ini" — jatuh tempo hari ini juga
+ *   "biasa"    — masih ada waktu, atau memang tidak bertenggat
+ *
+ * Hari terakhir diberi warna yang sama merahnya dengan yang sudah
+ * lewat. Kalau baru berubah merah keesokan harinya, peringatannya
+ * datang setelah terlambat — dan peringatan yang datang terlambat
+ * sama saja dengan tidak ada.
+ */
+export function tingkatDesakan(t: Tugas, kini = hariIni()): "lewat" | "hari-ini" | "biasa" {
+  if (!MASIH_TERBUKA.includes(t.status)) return "biasa";
+
+  if (t.jenis === BERULANG) {
+    return jatuhHariIni(t, kini) ? "hari-ini" : "biasa";
+  }
+
+  if (!t.tenggat) return "biasa";
+  if (t.tenggat < kini) return "lewat";
+  if (t.tenggat === kini) return "hari-ini";
+  return "biasa";
+}
+
+/** Warna bingkai kartu menurut desakannya. */
+export function warnaBingkai(desakan: "lewat" | "hari-ini" | "biasa"): string {
+  return desakan === "biasa" ? "border-garis" : "border-merah";
+}

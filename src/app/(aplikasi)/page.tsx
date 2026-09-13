@@ -11,6 +11,7 @@ import {
   jatuhHariIni,
   pisahJenis,
   sebutTenggat,
+  tingkatDesakan,
   type Tugas,
 } from "@/lib/tugas";
 
@@ -137,9 +138,22 @@ function PanelTugas({
               </p>
               <ul className="flex flex-col gap-1.5">
                 {hariIni.slice(0, 6).map((t) => (
-                  <li key={t.id} className="border-l-2 border-garis pl-3 text-sm">
+                  <li
+                    key={t.id}
+                    className={`border-l-2 pl-3 text-sm ${
+                      tingkatDesakan(t, kini) === "biasa"
+                        ? "border-garis"
+                        : "border-merah"
+                    }`}
+                  >
                     {t.judul}
-                    <span className="ml-2 text-xs text-tinta-3">
+                    <span
+                      className={`ml-2 text-xs ${
+                        tingkatDesakan(t, kini) === "biasa"
+                          ? "text-tinta-3"
+                          : "font-semibold text-merah"
+                      }`}
+                    >
                       {t.jenis === BERULANG
                         ? "berulang — jatuh hari ini"
                         : t.status === "Dikerjakan"

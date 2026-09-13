@@ -19,6 +19,8 @@ import {
   STATUS,
   jatuhHariIni,
   sebutIrama,
+  tingkatDesakan,
+  warnaBingkai,
   sebutTenggat,
   warnaPrioritas,
   warnaStatus,
@@ -56,16 +58,15 @@ export function BarisTugas({
   const berulangDipilih = jenisDipilih === BERULANG;
 
   const terbuka = t.status !== "Selesai" && t.status !== "Batal";
-  const lewat = terbuka && t.tenggat !== null && t.tenggat < hariIni;
+  const desakan = tingkatDesakan(t, hariIni);
+  const mendesak = desakan !== "biasa";
   const berjalan = t.jenis === BERULANG;
   const jatuhIni = jatuhHariIni(t, hariIni);
   const sudahHariIni = berjalan && t.terakhir_dikerjakan === hariIni;
 
   return (
     <li
-      className={`rounded-xl border bg-permukaan shadow-lembut ${
-        lewat ? "border-merah" : "border-garis"
-      }`}
+      className={`rounded-xl border bg-permukaan shadow-lembut ${warnaBingkai(desakan)}`}
     >
       <details className="group">
         <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 marker:content-['']">
@@ -86,7 +87,7 @@ export function BarisTugas({
               {t.judul}
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-              <span className={lewat ? "font-semibold text-merah" : "text-tinta-3"}>
+              <span className={mendesak ? "font-semibold text-merah" : "text-tinta-3"}>
                 {berjalan
                   ? sebutIrama(t) || "berulang, iramanya belum dipilih"
                   : sebutTenggat(t.tenggat, hariIni)}
