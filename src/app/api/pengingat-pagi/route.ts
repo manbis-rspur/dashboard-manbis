@@ -21,6 +21,10 @@ import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/li
  * kunci apa pun di luar yang dikenalnya — komentar sekalipun, dan
  * penolakannya menggagalkan seluruh penaikan.
  *
+ * Pada paket gratis Vercel, waktunya rentang satu jam, bukan jam
+ * persis: yang dijadwalkan 08.00 WIB bisa datang antara pukul
+ * 08.00 dan 09.00.
+ *
  * Paket gratis Vercel mengizinkan dua jadwal per proyek, masing-
  * masing sekali sehari — jadi ada pasangannya di sore hari. Waktunya
  * perkiraan, bisa meleset beberapa menit.

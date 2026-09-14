@@ -16,7 +16,12 @@ import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/li
  * Jadwalnya ada di vercel.json: pukul 09.30 UTC, yaitu 16.30 WIB.
  * Paket gratis Vercel mengizinkan dua jadwal per proyek, masing-
  * masing sekali sehari — pagi dan sore muat, tanpa layanan luar.
- * Waktunya perkiraan, bisa meleset beberapa menit.
+ *
+ * PENTING: pada paket gratis, waktunya BUKAN jam persis melainkan
+ * rentang satu jam. Yang dijadwalkan 16.30 WIB bisa datang kapan
+ * saja antara pukul 16.00 dan 17.00. Jadi pesan yang belum masuk
+ * tepat pukul setengah lima belum tentu gagal — sering ia cuma
+ * belum giliran.
  *
  * Dijaga kata sandi penjadwal, sama seperti pengingat pagi.
  */
