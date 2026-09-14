@@ -81,7 +81,7 @@ function IsiFormulir({
           diterima.
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
-          <Link
+          <Link prefetch={false}
             href="/komplain"
             className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
           >
@@ -264,7 +264,7 @@ function IsiFormulir({
         >
           {sedang ? "Menyimpan…" : "Simpan komplain"}
         </button>
-        <Link
+        <Link prefetch={false}
           href="/komplain"
           className="rounded-lg border border-garis px-5 py-2.5 font-medium text-tinta-2 hover:bg-permukaan-2"
         >

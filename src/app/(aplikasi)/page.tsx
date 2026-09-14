@@ -84,7 +84,7 @@ function PanelTugas({
           <Ikon nama="tugas" ukuran={14} />
           Pekerjaan hari ini
         </h2>
-        <Link
+        <Link prefetch={false}
           href="/tugas"
           className="flex items-center gap-1.5 rounded-lg border border-garis px-3 py-1.5 text-xs font-medium text-tinta-2 hover:bg-permukaan-2"
         >
@@ -193,7 +193,7 @@ function Modul({
   terbatas?: boolean;
 }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       className="group flex flex-col gap-2 rounded-xl border border-garis bg-permukaan p-5 shadow-lembut transition hover:border-hijau hover:shadow-angkat"
     >
@@ -327,7 +327,7 @@ export default async function Beranda() {
             </h1>
             <p className="mt-0.5 text-tinta-2">{pengguna.jabatan}</p>
           </div>
-          <Link
+          <Link prefetch={false}
             href="/penomoran/ambil-nomor"
             className="flex items-center gap-2 rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white shadow-lembut hover:opacity-90"
           >
@@ -391,7 +391,7 @@ export default async function Beranda() {
                 <p className="text-sm text-tinta-3">oleh {pengambil.nama}</p>
               )}
             </div>
-            <Link
+            <Link prefetch={false}
               href="/penomoran/buku-nomor"
               className="flex items-center gap-1.5 rounded-lg border border-garis px-3 py-2 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
             >

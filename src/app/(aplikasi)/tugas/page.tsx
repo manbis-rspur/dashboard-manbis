@@ -118,7 +118,7 @@ export default async function HalamanTugas() {
           </p>
         </div>
         {bolehPapan && (
-          <Link
+          <Link prefetch={false}
             href="/tugas/unit"
             className="flex items-center gap-2 rounded-lg border border-garis px-4 py-2.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
           >

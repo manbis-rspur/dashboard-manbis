@@ -15,7 +15,7 @@ export default function LayoutPenomoran({ children }: LayoutProps<"/penomoran">)
         </p>
         <nav className="flex gap-1">
           {HALAMAN.map((h) => (
-            <Link
+            <Link prefetch={false}
               key={h.href}
               href={h.href}
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"

@@ -76,7 +76,7 @@ export default async function HalamanDetailKomplain({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Link href="/komplain" className="text-sm text-tinta-3 hover:underline">
+        <Link prefetch={false} href="/komplain" className="text-sm text-tinta-3 hover:underline">
           ← Kembali ke daftar komplain
         </Link>
         <h1 className="mt-2 font-mono text-2xl font-semibold tracking-tight">{k.kode}</h1>

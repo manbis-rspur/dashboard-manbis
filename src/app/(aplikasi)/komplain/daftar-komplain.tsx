@@ -125,7 +125,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
               {tersaring.map((b) => (
                 <tr key={b.id} className="hover:bg-permukaan-2">
                   <td className="border-b border-garis px-4 py-2.5 font-mono whitespace-nowrap">
-                    <Link href={`/komplain/${b.id}`} className="font-medium hover:underline">
+                    <Link prefetch={false} href={`/komplain/${b.id}`} className="font-medium hover:underline">
                       {b.kode}
                     </Link>
                   </td>
@@ -171,7 +171,7 @@ export function DaftarKomplain({ baris }: { baris: BarisKomplain[] }) {
                     )}
                   </td>
                   <td className="border-b border-garis px-4 py-2.5 text-right whitespace-nowrap">
-                    <Link
+                    <Link prefetch={false}
                       href={`/komplain/${b.id}`}
                       className={
                         b.status === "Selesai"

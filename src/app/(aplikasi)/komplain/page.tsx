@@ -67,7 +67,7 @@ export default async function HalamanKomplain() {
             Pencatatan dan tindak lanjut keluhan pelanggan RSPUR.
           </p>
         </div>
-        <Link
+        <Link prefetch={false}
           href="/komplain/baru"
           className="rounded-lg bg-hijau px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
         >

@@ -88,7 +88,7 @@ export default async function PapanTugasUnit() {
   return (
     <div className="flex flex-col gap-7">
       <div>
-        <Link href="/tugas" className="text-sm text-tinta-3 hover:underline">
+        <Link prefetch={false} href="/tugas" className="text-sm text-tinta-3 hover:underline">
           ← Kembali ke tugas saya
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Papan Tugas Unit</h1>

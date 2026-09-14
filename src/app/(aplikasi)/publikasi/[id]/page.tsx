@@ -53,7 +53,7 @@ export default async function HalamanDokumen({ params }: PageProps<"/publikasi/[
   return (
     <div className="flex flex-col gap-7">
       <div>
-        <Link href="/publikasi" className="text-sm text-tinta-3 hover:underline">
+        <Link prefetch={false} href="/publikasi" className="text-sm text-tinta-3 hover:underline">
           ← Kembali ke arsip
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{d.judul}</h1>

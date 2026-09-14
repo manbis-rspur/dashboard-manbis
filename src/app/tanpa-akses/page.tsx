@@ -10,7 +10,7 @@ export default function TanpaAkses() {
           Manajemen Bisnis. Kalau Anda perlu mengubah sesuatu di sana, hubungi
           beliau.
         </p>
-        <Link
+        <Link prefetch={false}
           href="/"
           className="mt-6 inline-block rounded-lg bg-hijau px-4 py-2.5 font-medium text-white"
         >

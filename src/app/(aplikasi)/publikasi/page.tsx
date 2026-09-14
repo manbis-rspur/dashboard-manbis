@@ -84,7 +84,7 @@ export default async function HalamanPublikasi() {
                 className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-garis bg-permukaan px-4 py-3"
               >
                 <div className="mr-auto min-w-0">
-                  <Link href={`/publikasi/${d.id}`} className="font-medium hover:underline">
+                  <Link prefetch={false} href={`/publikasi/${d.id}`} className="font-medium hover:underline">
                     {d.judul}
                   </Link>
                   <p className="text-xs text-tinta-3">
@@ -140,7 +140,7 @@ export default async function HalamanPublikasi() {
                   </a>
                 )}
 
-                <Link
+                <Link prefetch={false}
                   href={`/publikasi/${d.id}`}
                   className="rounded-lg bg-hijau px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
                 >
