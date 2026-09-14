@@ -14,6 +14,15 @@ import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/li
  * Dijaga satu kata sandi yang hanya diketahui penjadwal. Alamat ini
  * terbuka tanpa login — kalau tidak dijaga, siapa pun yang
  * menemukannya bisa membanjiri Telegram seluruh anggota unit.
+ *
+ * Jadwalnya ada di vercel.json: pukul 01.00 UTC, yaitu 08.00 WIB.
+ * Keterangannya ditulis di sini karena berkas vercel.json menolak
+ * kunci apa pun di luar yang dikenalnya — komentar sekalipun, dan
+ * penolakannya menggagalkan seluruh penaikan.
+ *
+ * Paket gratis Vercel hanya mengizinkan satu jadwal sehari, jadi
+ * pengingat sore ditiadakan dan digantikan bagian Tutup Hari di
+ * dashboard.
  */
 export async function GET(permintaan: Request) {
   const rahasia = process.env.CRON_SECRET;
