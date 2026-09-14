@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "comment": "Pengingat tugas pagi. Pukul 01.00 UTC = 08.00 WIB. Paket gratis Vercel hanya mengizinkan satu kali sehari, jadi pengingat sore ditiadakan dan digantikan tampilan Tutup Hari di dashboard.",
+      "path": "/api/pengingat-pagi",
+      "schedule": "0 1 * * *"
+    }
+  ]
+}

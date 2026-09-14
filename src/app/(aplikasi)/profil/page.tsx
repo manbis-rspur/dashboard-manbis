@@ -2,6 +2,7 @@ import { wajibLogin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { FormFoto } from "./form-foto";
 import { FormSandi } from "./form-sandi";
+import { FormTelegram } from "./form-telegram";
 
 export default async function HalamanProfil() {
   const pengguna = await wajibLogin();
@@ -9,7 +10,7 @@ export default async function HalamanProfil() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("pengguna")
-    .select("foto_url")
+    .select("foto_url, telegram_chat_id")
     .eq("id", pengguna.id)
     .maybeSingle();
 
@@ -40,6 +41,20 @@ export default async function HalamanProfil() {
           </p>
         </div>
         <FormSandi />
+      </section>
+
+      <section className="flex flex-col gap-4 border-t border-garis pt-8">
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+            Pengingat Telegram
+          </h2>
+          <p className="mt-1 text-sm text-tinta-2">
+            Dashboard hanya mengingatkan yang membukanya — dan yang lupa justru
+            tidak membuka. Sambungkan Telegram supaya daftar tugas datang
+            sendiri tiap pagi.
+          </p>
+        </div>
+        <FormTelegram chatIdAwal={data?.telegram_chat_id ?? null} />
       </section>
 
       <section className="flex flex-col gap-2 border-t border-garis pt-8">
