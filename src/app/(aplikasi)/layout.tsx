@@ -8,7 +8,7 @@ import { keluar } from "@/lib/auth-actions";
 import { wajibLogin } from "@/lib/auth";
 import { bacaIdentitas } from "@/lib/identitas";
 import { bacaLonceng } from "@/lib/notifikasi";
-import { bolehAkses } from "@/lib/akses";
+import { bolehAkses, punyaIzin } from "@/lib/akses";
 import { gayaWarna } from "@/lib/gaya-warna";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,6 +44,11 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
   const bolehPublikasi =
     (await bolehAkses("publikasi")) || (await bolehAkses("humas"));
 
+  // Kalender libur diatur Koordinator; Admin ikut melihatnya sebagai
+  // jalan pemulihan kalau izinnya keliru.
+  const bolehPapanTugas =
+    (await punyaIzin("tugas_unit")) || pengguna.peran === "Admin";
+
   const lonceng = await bacaLonceng();
 
   const menu: ButirMenu[] = [
@@ -55,6 +60,9 @@ export default async function LayoutAplikasi({ children }: LayoutProps<"/">) {
       ? [{ href: "/publikasi", label: "Publikasi", ikon: "publikasi" as const }]
       : []),
     { href: "/rekap", label: "Rekap", ikon: "rekap" },
+    ...(bolehPapanTugas
+      ? [{ href: "/pengaturan/hari-libur", label: "Hari Libur", ikon: "waktu" as const }]
+      : []),
     ...(pengguna.peran === "Admin" ? MENU_ADMIN : []),
   ];
 

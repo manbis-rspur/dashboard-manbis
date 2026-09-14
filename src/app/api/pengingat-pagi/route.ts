@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { hariKerja } from "@/lib/libur";
 import { susunPengingat } from "@/lib/pengingat";
 import { kirimTelegram } from "@/lib/telegram";
 import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/lib/tugas";
@@ -40,6 +41,18 @@ export async function GET(permintaan: Request) {
 
   const db = createAdminClient();
   const kini = hitungHariIni();
+
+  // Sabtu, Minggu, dan tanggal merah dilewati. Pengingat yang datang
+  // pada hari orang tidak bekerja cepat dianggap gangguan — dan yang
+  // dianggap gangguan akan diabaikan juga pada hari kerja.
+  const { data: barisLibur } = await db.from("hari_libur").select("tanggal");
+  const libur = new Set((barisLibur ?? []).map((b) => b.tanggal as string));
+  const bekerja = hariKerja(kini, libur);
+
+  if (!bekerja) {
+    return NextResponse.json({ tanggal: kini, libur: true, jumlah: 0, hasil: [] });
+  }
+
   const kemarin = geser(kini, -1);
 
   const { data: orang, error: galatOrang } = await db

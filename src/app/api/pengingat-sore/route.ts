@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { hariKerja } from "@/lib/libur";
 import { susunBerulang, susunTutupHari } from "@/lib/pengingat";
 import { kirimTelegram } from "@/lib/telegram";
 import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/lib/tugas";
@@ -35,6 +36,14 @@ export async function GET(permintaan: Request) {
 
   const db = createAdminClient();
   const kini = hitungHariIni();
+
+  // Sabtu, Minggu, dan tanggal merah dilewati. Pengingat yang datang
+  // pada hari orang tidak bekerja cepat dianggap gangguan — dan yang
+  // dianggap gangguan akan diabaikan juga pada hari kerja.
+  const { data: barisLibur } = await db.from("hari_libur").select("tanggal");
+  const libur = new Set((barisLibur ?? []).map((b) => b.tanggal as string));
+  const bekerja = hariKerja(kini, libur);
+
   const kemarin = geser(kini, -1);
 
   const { data: orang, error: galatOrang } = await db
@@ -68,9 +77,13 @@ export async function GET(permintaan: Request) {
     // Dua gelembung terpisah, bukan satu pesan panjang. Pekerjaan
     // rutin dan ajakan menutup hari adalah dua hal berbeda, dan yang
     // ditumpuk jadi satu cenderung dibaca setengah.
+    // Pada hari libur, ajakan menutup hari dilewati — tapi tugas
+    // berulang tetap dikirim. Hari itu dipilih sendiri oleh yang
+    // punya tugasnya; jadwal dokter tetap perlu diperbarui hari
+    // Minggu walaupun kantornya libur.
     const bagian: [string, string | null][] = [
       ["rutin", susunBerulang(p.nama, miliknya, kini)],
-      ["tutup hari", susunTutupHari(p.nama, miliknya, kini)],
+      ["tutup hari", bekerja ? susunTutupHari(p.nama, miliknya, kini) : null],
     ];
 
     const terkirim: string[] = [];
