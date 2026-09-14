@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
 import { kabariTugasBaru } from "@/lib/kabar-tugas";
+import { simpanTugas } from "@/lib/tugas-simpan";
 import { BERULANG, JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
 import type { Hasil, HasilTugas } from "@/lib/hasil";
 
@@ -99,24 +100,25 @@ export async function tambahTugas(
       : pengguna.id;
 
   const supabase = await createClient();
-  const { data: baru, error } = await supabase
-    .from("tugas")
-    .insert({
-    untuk,
-    judul,
-    keterangan: isiAtauNull(formData, "keterangan"),
-    ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
-    tenggat,
-    jenis,
-    ...iramaTerpilih(formData, jenis),
-    prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
-    sumber: untuk === pengguna.id ? "web" : "titipan",
-    dibuat_oleh: pengguna.id,
-    })
-    .select("id")
-    .single();
+  const baru = await simpanTugas(
+    supabase,
+    {
+      untuk,
+      judul,
+      keterangan: isiAtauNull(formData, "keterangan"),
+      ...(mulai !== "" ? { tanggal_mulai: mulai } : {}),
+      tenggat,
+      jenis,
+      ...iramaTerpilih(formData, jenis),
+      prioritas: (PRIORITAS as readonly string[]).includes(prioritas)
+        ? prioritas
+        : "Sedang",
+      dibuat_oleh: pengguna.id,
+    },
+    { sumber: untuk === pengguna.id ? "web" : "titipan" },
+  );
 
-  if (error) return gagal(`Gagal disimpan: ${error.message}`);
+  if (baru.pesan) return gagal(`Gagal disimpan: ${baru.pesan}`);
 
   // Tugas titipan dikabari saat itu juga. Yang menitipkan biasanya
   // sedang tidak bersebelahan dengan yang dititipi — kalau tidak,

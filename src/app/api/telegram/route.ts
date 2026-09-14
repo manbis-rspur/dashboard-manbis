@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { aman, kirimTelegram } from "@/lib/telegram";
 import { bacaTugasDariTeks } from "@/lib/ai-tugas";
 import { hariIni, sebutTenggat } from "@/lib/tugas";
+import { simpanTugas } from "@/lib/tugas-simpan";
 
 /**
  * Menerima pesan yang dikirim ke bot Telegram, lalu menjadikannya
@@ -165,23 +166,25 @@ export async function POST(permintaan: Request) {
   const kini = hariIni();
   const baca = await bacaTugasDariTeks(teks, kini);
 
-  const { error } = await db.from("tugas").insert({
-    untuk: pengguna.id,
-    dibuat_oleh: pengguna.id,
-    judul: baca.judul,
-    keterangan: baca.keterangan,
-    tanggal_mulai: kini,
-    tenggat: baca.tenggat,
-    jenis: baca.jenis,
-    prioritas: baca.prioritas,
-    sumber: "telegram",
-    dadakan: true,
-  });
+  const simpan = await simpanTugas(
+    db,
+    {
+      untuk: pengguna.id,
+      dibuat_oleh: pengguna.id,
+      judul: baca.judul,
+      keterangan: baca.keterangan,
+      tanggal_mulai: kini,
+      tenggat: baca.tenggat,
+      jenis: baca.jenis,
+      prioritas: baca.prioritas,
+    },
+    { sumber: "telegram", dadakan: true },
+  );
 
-  if (error) {
+  if (simpan.pesan) {
     await balas(
       chat,
-      `Gagal disimpan: ${aman(error.message)}\n\nCoba lagi, atau tulis langsung di ${ALAMAT_SITUS}/tugas`,
+      `Gagal disimpan: ${aman(simpan.pesan)}\n\nCoba lagi, atau tulis langsung di ${ALAMAT_SITUS}/tugas`,
     );
     return NextResponse.json({ ok: true });
   }
