@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { susunTutupHari } from "@/lib/pengingat";
+import { susunBerulang, susunTutupHari } from "@/lib/pengingat";
 import { kirimTelegram } from "@/lib/telegram";
 import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/lib/tugas";
 
@@ -58,26 +58,37 @@ export async function GET(permintaan: Request) {
     .or(`status.in.(${MASIH_TERBUKA.join(",")}),selesai_pada.gte.${kemarin}`);
 
   const semua = (tugas ?? []) as Tugas[];
-  const hasil: { nama: string; terkirim: boolean; pesan?: string }[] = [];
+  const hasil: { nama: string; gelembung: string[]; pesan?: string }[] = [];
 
   for (const p of orang ?? []) {
     if (!p.telegram_chat_id) continue;
 
     const miliknya = semua.filter((t) => t.untuk === p.id);
-    const pesan = susunTutupHari(p.nama, miliknya, kini);
 
-    if (!pesan) {
-      hasil.push({ nama: p.nama, terkirim: false, pesan: "tidak ada yang perlu ditutup" });
-      continue;
+    // Dua gelembung terpisah, bukan satu pesan panjang. Pekerjaan
+    // rutin dan ajakan menutup hari adalah dua hal berbeda, dan yang
+    // ditumpuk jadi satu cenderung dibaca setengah.
+    const bagian: [string, string | null][] = [
+      ["rutin", susunBerulang(p.nama, miliknya, kini)],
+      ["tutup hari", susunTutupHari(p.nama, miliknya, kini)],
+    ];
+
+    const terkirim: string[] = [];
+    let galat: string | undefined;
+
+    for (const [nama, isi] of bagian) {
+      if (!isi) continue;
+      const kirim = await kirimTelegram(p.telegram_chat_id, isi);
+      if (kirim.ok) terkirim.push(nama);
+      else galat = kirim.pesan;
     }
 
-    const kirim = await kirimTelegram(p.telegram_chat_id, pesan);
-
-    hasil.push(
-      kirim.ok
-        ? { nama: p.nama, terkirim: true }
-        : { nama: p.nama, terkirim: false, pesan: kirim.pesan },
-    );
+    hasil.push({
+      nama: p.nama,
+      gelembung: terkirim,
+      ...(galat ? { pesan: galat } : {}),
+      ...(terkirim.length === 0 && !galat ? { pesan: "tidak ada yang perlu disebut" } : {}),
+    });
   }
 
   return NextResponse.json({ tanggal: kini, jumlah: hasil.length, hasil });

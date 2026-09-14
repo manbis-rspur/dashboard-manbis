@@ -1,6 +1,7 @@
 import "server-only";
 import { aman } from "@/lib/telegram";
 import {
+  BERULANG,
   MASIH_TERBUKA,
   geser,
   hariIni as hitungHariIni,
@@ -57,14 +58,19 @@ export function susunPengingat(
   const kemarin = geser(kini, -1);
   const terbuka = semua.filter((t) => MASIH_TERBUKA.includes(t.status));
 
-  const lewat = terbuka.filter((t) => tingkatDesakan(t, kini) === "lewat");
-  const hariIni = terbuka.filter((t) => tingkatDesakan(t, kini) === "hari-ini");
+  // Tugas berulang punya pesannya sendiri di sore hari. Dicampur ke
+  // sini, ia muncul dua kali sehari untuk pekerjaan yang sebenarnya
+  // dikerjakan sekali — dan yang diulang-ulang cepat diabaikan.
+  const sekali = terbuka.filter((t) => t.jenis !== BERULANG);
+
+  const lewat = sekali.filter((t) => tingkatDesakan(t, kini) === "lewat");
+  const hariIni = sekali.filter((t) => tingkatDesakan(t, kini) === "hari-ini");
   const sudahDisebut = new Set([...lewat, ...hariIni].map((t) => t.id));
 
-  const belum = terbuka.filter(
+  const belum = sekali.filter(
     (t) => !sudahDisebut.has(t.id) && t.status === "Belum",
   );
-  const sedang = terbuka.filter(
+  const sedang = sekali.filter(
     (t) => !sudahDisebut.has(t.id) && t.status !== "Belum",
   );
 
@@ -121,6 +127,7 @@ export function susunTutupHari(
   const terbuka = semua.filter((t) => MASIH_TERBUKA.includes(t.status));
 
   const perluDitutup = terbuka.filter((t) => {
+    if (t.jenis === BERULANG) return false;
     const desakan = tingkatDesakan(t, kini);
     return desakan === "lewat" || desakan === "hari-ini";
   });
@@ -144,5 +151,44 @@ export function susunTutupHari(
     `<b>Tutup hari</b> — beri status dan catatan singkat tiap baris sekaligus.\n` +
     `\nYang belum selesai tidak hilang; besok masih di daftar, dan yang lewat ` +
     `tenggat naik ke paling atas.`
+  );
+}
+
+
+/**
+ * Gelembung tersendiri untuk tugas berulang yang jatuh hari ini.
+ *
+ * Dipisah dari pesan lain atas permintaan yang memakainya, dan
+ * alasannya masuk akal: pekerjaan rutin seperti memperbarui jadwal
+ * dokter dikerjakan menjelang pulang, bukan direncanakan pagi-pagi.
+ * Ditumpuk bersama daftar tugas lain, ia tenggelam di antara hal
+ * yang tidak berhubungan.
+ *
+ * Mengembalikan null kalau hari ini memang bukan harinya, atau
+ * semuanya sudah ditandai.
+ */
+export function susunBerulang(
+  nama: string,
+  semua: Tugas[],
+  kini = hitungHariIni(),
+): string | null {
+  const jatuh = semua.filter((t) => jatuhHariIni(t, kini));
+  if (jatuh.length === 0) return null;
+
+  const baris = jatuh
+    .map((t) => {
+      const catatan = t.keterangan ? `\n   <i>${aman(t.keterangan.split("\n")[0])}</i>` : "";
+      return `${aman(t.judul)}${catatan}`;
+    })
+    .map((b) => `• ${b}`)
+    .join("\n");
+
+  return (
+    `<b>Pekerjaan rutin hari ini</b>\n` +
+    `${aman(nama.split(",")[0])}, ${jatuh.length === 1 ? "ada satu" : `ada ${jatuh.length}`} ` +
+    `yang jatuh hari ini:\n\n` +
+    baris +
+    `\n\nSesudah dikerjakan, tekan <b>Sudah hari ini</b> di daftar tugas — ` +
+    `besok ia menunggu lagi.`
   );
 }
