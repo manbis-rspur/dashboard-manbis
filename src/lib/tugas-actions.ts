@@ -6,6 +6,7 @@ import { punyaIzin } from "@/lib/akses";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JENIS_LAMPIRAN, jenisLampiranDiterima } from "@/lib/lampiran";
+import { kabariTugasBaru } from "@/lib/kabar-tugas";
 import { BERULANG, JENIS, PRIORITAS, STATUS, hariIni } from "@/lib/tugas";
 import type { Hasil, HasilTugas } from "@/lib/hasil";
 
@@ -109,12 +110,26 @@ export async function tambahTugas(
     jenis,
     ...iramaTerpilih(formData, jenis),
     prioritas: (PRIORITAS as readonly string[]).includes(prioritas) ? prioritas : "Sedang",
+    sumber: untuk === pengguna.id ? "web" : "titipan",
     dibuat_oleh: pengguna.id,
     })
     .select("id")
     .single();
 
   if (error) return gagal(`Gagal disimpan: ${error.message}`);
+
+  // Tugas titipan dikabari saat itu juga. Yang menitipkan biasanya
+  // sedang tidak bersebelahan dengan yang dititipi — kalau tidak,
+  // ia akan bilang langsung, bukan mengetik di sistem.
+  if (untuk !== pengguna.id) {
+    await kabariTugasBaru({
+      untuk,
+      judul,
+      tenggat,
+      prioritas,
+      dari: pengguna.nama,
+    });
+  }
 
   segarkan();
   revalidatePath("/tugas/unit");
