@@ -1,28 +1,23 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { susunPengingat } from "@/lib/pengingat";
+import { susunTutupHari } from "@/lib/pengingat";
 import { kirimTelegram } from "@/lib/telegram";
 import { MASIH_TERBUKA, geser, hariIni as hitungHariIni, type Tugas } from "@/lib/tugas";
 
 /**
- * Pengingat pagi — dipanggil penjadwal Vercel sekali sehari.
+ * Pengingat sore — ajakan menutup hari sebelum pulang.
  *
- * Dashboard hanya mengingatkan orang yang membukanya, sedangkan yang
- * lupa justru tidak membuka; itu bentuk lupanya. Jadi pengingatnya
- * harus datang sendiri ke tempat yang memang dilihat tiap pagi.
+ * Tidak dikirim kalau memang tidak ada yang perlu ditutup. Pengingat
+ * yang tetap datang walaupun tidak ada kerjaan melatih orang
+ * mengabaikannya, dan begitu terbiasa diabaikan ia juga akan
+ * terlewat pada hari yang benar-benar penting.
  *
- * Dijaga satu kata sandi yang hanya diketahui penjadwal. Alamat ini
- * terbuka tanpa login — kalau tidak dijaga, siapa pun yang
- * menemukannya bisa membanjiri Telegram seluruh anggota unit.
- *
- * Jadwalnya ada di vercel.json: pukul 01.00 UTC, yaitu 08.00 WIB.
- * Keterangannya ditulis di sini karena berkas vercel.json menolak
- * kunci apa pun di luar yang dikenalnya — komentar sekalipun, dan
- * penolakannya menggagalkan seluruh penaikan.
- *
+ * Jadwalnya ada di vercel.json: pukul 09.30 UTC, yaitu 16.30 WIB.
  * Paket gratis Vercel mengizinkan dua jadwal per proyek, masing-
- * masing sekali sehari — jadi ada pasangannya di sore hari. Waktunya
- * perkiraan, bisa meleset beberapa menit.
+ * masing sekali sehari — pagi dan sore muat, tanpa layanan luar.
+ * Waktunya perkiraan, bisa meleset beberapa menit.
+ *
+ * Dijaga kata sandi penjadwal, sama seperti pengingat pagi.
  */
 export async function GET(permintaan: Request) {
   const rahasia = process.env.CRON_SECRET;
@@ -69,10 +64,14 @@ export async function GET(permintaan: Request) {
     if (!p.telegram_chat_id) continue;
 
     const miliknya = semua.filter((t) => t.untuk === p.id);
-    const kirim = await kirimTelegram(
-      p.telegram_chat_id,
-      susunPengingat(p.nama, miliknya, kini),
-    );
+    const pesan = susunTutupHari(p.nama, miliknya, kini);
+
+    if (!pesan) {
+      hasil.push({ nama: p.nama, terkirim: false, pesan: "tidak ada yang perlu ditutup" });
+      continue;
+    }
+
+    const kirim = await kirimTelegram(p.telegram_chat_id, pesan);
 
     hasil.push(
       kirim.ok

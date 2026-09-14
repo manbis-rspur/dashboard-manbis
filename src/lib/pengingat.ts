@@ -98,3 +98,51 @@ export function susunPengingat(
 
   return `${kepala}${isi}\nBuka daftar lengkapnya di dashboard Manajemen Bisnis.`;
 }
+
+
+/**
+ * Menyusun pengingat sore: ajakan menutup hari.
+ *
+ * Mengembalikan null kalau memang tidak ada yang perlu ditutup.
+ * Pengingat yang tetap datang walaupun tidak ada kerjaan melatih
+ * orang mengabaikannya — dan begitu terbiasa diabaikan, ia juga akan
+ * terlewat pada hari yang benar-benar penting.
+ *
+ * Isinya sengaja berbeda dari pesan pagi. Pagi menjawab "hari ini
+ * saya harus apa"; sore menjawab "apa yang belum saya tandai".
+ * Kalau keduanya sama, yang sore cuma jadi salinan yang tidak
+ * dibaca.
+ */
+export function susunTutupHari(
+  nama: string,
+  semua: Tugas[],
+  kini = hitungHariIni(),
+): string | null {
+  const terbuka = semua.filter((t) => MASIH_TERBUKA.includes(t.status));
+
+  const perluDitutup = terbuka.filter((t) => {
+    const desakan = tingkatDesakan(t, kini);
+    return desakan === "lewat" || desakan === "hari-ini";
+  });
+
+  if (perluDitutup.length === 0) return null;
+
+  const belumDisentuh = perluDitutup.filter((t) => t.status === "Belum");
+  const sedang = perluDitutup.filter((t) => t.status !== "Belum");
+
+  const sebut = (t: Tugas) =>
+    `${aman(t.judul)} — <i>${aman(
+      jatuhHariIni(t, kini) ? sebutIrama(t) || "berulang" : sebutTenggat(t.tenggat, kini),
+    )}</i>`;
+
+  return (
+    `<b>Sebelum pulang, ${aman(nama.split(",")[0])}.</b>\n` +
+    `Ada ${perluDitutup.length} pekerjaan hari ini yang belum ditandai.\n` +
+    daftar("Belum tersentuh", belumDisentuh.map(sebut)) +
+    daftar("Sedang dikerjakan", sedang.map(sebut)) +
+    `\nBuka <b>Tugas Saya</b> di dashboard Manajemen Bisnis, lalu tekan ` +
+    `<b>Tutup hari</b> — beri status dan catatan singkat tiap baris sekaligus.\n` +
+    `\nYang belum selesai tidak hilang; besok masih di daftar, dan yang lewat ` +
+    `tenggat naik ke paling atas.`
+  );
+}
