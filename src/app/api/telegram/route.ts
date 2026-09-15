@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { aman, kirimTelegram } from "@/lib/telegram";
 import { bacaTugasDariTeks } from "@/lib/ai-tugas";
-import { hariIni, sebutTenggat } from "@/lib/tugas";
+import { hariIni, sebutHari, sebutTanggalBulan, sebutTenggat, BERULANG } from "@/lib/tugas";
 import { simpanTugas } from "@/lib/tugas-simpan";
 
 /**
@@ -176,6 +176,8 @@ export async function POST(permintaan: Request) {
       tanggal_mulai: kini,
       tenggat: baca.tenggat,
       jenis: baca.jenis,
+      hari: baca.hari,
+      tanggal_bulan: baca.tanggal_bulan,
       prioritas: baca.prioritas,
     },
     { sumber: "telegram", dadakan: true },
@@ -194,7 +196,11 @@ export async function POST(permintaan: Request) {
     "",
     aman(baca.judul),
     `${aman(baca.jenis)} · ${
-      baca.tenggat ? `Tenggat <b>${aman(sebutTenggat(baca.tenggat, kini))}</b>` : "tanpa tenggat"
+      baca.jenis === BERULANG
+        ? `<b>${aman(sebutHari(baca.hari) || sebutTanggalBulan(baca.tanggal_bulan) || "belum ada irama")}</b>`
+        : baca.tenggat
+          ? `Tenggat <b>${aman(sebutTenggat(baca.tenggat, kini))}</b>`
+          : "tanpa tenggat"
     }${baca.prioritas === "Tinggi" ? " · Prioritas tinggi" : ""}`,
     "",
   ];
