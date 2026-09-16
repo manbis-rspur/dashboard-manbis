@@ -82,13 +82,62 @@ export async function GET(permintaan: Request) {
   const semua = (tugas ?? []) as Tugas[];
   const hasil: { nama: string; terkirim: boolean; pesan?: string }[] = [];
 
+  /**
+   * Perubahan jadwal dokter yang sudah dicatat tapi belum terbit
+   * di rspur.co.id.
+   *
+   * Kegagalan yang sesungguhnya bukan salah mengubah, melainkan
+   * lupa mengubah sama sekali setelah niatnya lewat semalam. Jadi
+   * ia ikut ditagih tiap pagi sampai benar-benar terpasang.
+   *
+   * Hanya kepada yang memang mengurusnya — pemegang izin 'humas'.
+   * Yang lain tidak bisa membukanya, dan pengingat yang tidak bisa
+   * ditindaklanjuti cuma melatih orang mengabaikan pesan.
+   */
+  const { data: tertunda } = await db
+    .from("perubahan_jadwal")
+    .select("dokter_nama, aksi, hari, jam_lama, jam_baru, dicatat_pada")
+    .eq("status", "Menunggu")
+    .order("dicatat_pada")
+    .limit(10);
+
+  const { data: pengurus } = await db
+    .from("akses_modul")
+    .select("pengguna_id")
+    .eq("modul", "humas");
+
+  const idPengurus = new Set((pengurus ?? []).map((a) => a.pengguna_id as number));
+
+  const NAMA_HARI = ["", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+  const ekorJadwal =
+    (tertunda ?? []).length === 0
+      ? ""
+      : `\n<b>Jadwal dokter yang belum diubah di situs (${tertunda!.length})</b>\n` +
+        tertunda!
+          .map((t) => {
+            const hari = t.hari ? NAMA_HARI[t.hari as number] : "";
+            const ke =
+              t.aksi === "hapus"
+                ? `${t.jam_lama ?? ""} dihapus`
+                : t.aksi === "tambah"
+                  ? `${t.jam_baru ?? ""} ditambah`
+                  : t.aksi === "ubah"
+                    ? `${t.jam_lama ?? "?"} jadi ${t.jam_baru ?? "?"}`
+                    : "perlu diperiksa sendiri";
+            return `• ${t.dokter_nama} — ${hari} ${ke}`.replace(/\s+/g, " ").trim();
+          })
+          .join("\n") +
+        "\n\nSesudah diubah, balas /cek di bot Humas.\n";
+
   for (const p of orang ?? []) {
     if (!p.telegram_chat_id) continue;
 
     const miliknya = semua.filter((t) => t.untuk === p.id);
     const kirim = await kirimTelegram(
       p.telegram_chat_id,
-      susunPengingat(p.nama, miliknya, kini),
+      susunPengingat(p.nama, miliknya, kini) +
+        (idPengurus.has(p.id) ? ekorJadwal : ""),
     );
 
     hasil.push(
