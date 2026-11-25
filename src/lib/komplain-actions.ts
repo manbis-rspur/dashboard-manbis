@@ -102,6 +102,188 @@ export async function catatKomplain(
 }
 
 /**
+ * Nama kolom seperti yang dikenal petugas.
+ *
+ * Dipakai menyusun catatan perubahan. Riwayat yang berbunyi
+ * "pasien_no_rm diubah" memaksa yang membacanya menebak; yang
+ * berbunyi "No. rekam medis" tidak.
+ */
+const SEBUTAN_KOLOM: Record<string, string> = {
+  waktu_pelaporan: "Waktu pelaporan",
+  pelapor_nama: "Nama pelapor",
+  pelapor_hp: "No. HP pelapor",
+  pelapor_alamat: "Alamat pelapor",
+  pasien_nama: "Nama pasien",
+  pasien_tgl_lahir: "Tanggal lahir pasien",
+  pasien_no_rm: "No. rekam medis",
+  pasien_hp: "No. HP pasien",
+  pasien_alamat: "Alamat pasien",
+  jalur_pelaporan: "Jalur pelaporan",
+  media_pelaporan: "Media pelaporan",
+  kategori_masalah: "Kategori masalah",
+  sumber_pelaporan: "Sumber pelaporan",
+  detail_masalah: "Detail komplain",
+  kepuasan_awal: "Kepuasan awal",
+};
+
+/** Nilai kosong ditulis sebagai tanda hubung, bukan "null". */
+function tampak(nilai: unknown): string {
+  const t = nilai === null || nilai === undefined ? "" : String(nilai).trim();
+  return t === "" ? "—" : t;
+}
+
+/**
+ * Daftar perubahan dalam bahasa manusia.
+ *
+ * Yang dicatat nilai LAMA dan BARU-nya, bukan sekadar nama
+ * kolomnya. Tanpa nilai lamanya, catatan perubahan tidak bisa
+ * dipakai memeriksa apa pun — dan satu-satunya alasan mencatatnya
+ * memang supaya bisa diperiksa.
+ *
+ * Teks panjang dipotong di catatan; yang utuh tetap tersimpan di
+ * kolomnya sendiri.
+ */
+function daftarPerubahan(
+  lama: Record<string, unknown>,
+  baru: Record<string, unknown>,
+): string[] {
+  const hasil: string[] = [];
+
+  for (const [kolom, sebutan] of Object.entries(SEBUTAN_KOLOM)) {
+    if (!(kolom in baru)) continue;
+
+    const a = tampak(lama[kolom]);
+    const b = tampak(baru[kolom]);
+    if (a === b) continue;
+
+    const pendek = (v: string) => (v.length > 80 ? `${v.slice(0, 79)}…` : v);
+    hasil.push(`${sebutan}: "${pendek(a)}" menjadi "${pendek(b)}"`);
+  }
+
+  return hasil;
+}
+
+/**
+ * Memperbaiki data komplain yang sudah tercatat.
+ *
+ * Sebelum ini tidak ada jalan sama sekali memperbaikinya. Salah
+ * ketik nomor rekam medis atau nama pasien — yang paling sering
+ * terjadi justru saat menerima laporan lewat telepon — hanya bisa
+ * ditebus dengan mencatat komplain baru, dan yang keliru tetap
+ * tinggal di daftar.
+ *
+ * Dua hal yang membedakannya dari sekadar UPDATE biasa:
+ *
+ * 1. Tiap perubahan masuk ke riwayat berikut nilai lamanya. Ini
+ *    berkas resmi yang dicetak, ditandatangani, dan bisa naik ke
+ *    komite etik; perubahan diam-diam tidak pantas di sini.
+ *
+ * 2. Komplain yang sudah Selesai atau sudah dieskalasi terkunci
+ *    bagi selain Admin. Memperbaiki salah ketik itu wajar;
+ *    mengubah isi laporan sesudah ia ditandatangani dan diteruskan
+ *    bukan lagi perbaikan.
+ */
+export async function ubahKomplain(
+  _s: HasilKomplain,
+  formData: FormData,
+): Promise<HasilKomplain> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { pesan: "Sesi Anda sudah berakhir. Masuk lagi.", kode: null };
+
+  const id = Number(formData.get("id"));
+  if (!id) return { pesan: "Komplain yang mau diubah tidak jelas.", kode: null };
+
+  const supabase = await createClient();
+
+  const { data: lama } = await supabase
+    .from("komplain")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!lama) return { pesan: "Komplainnya tidak ditemukan lagi.", kode: null };
+
+  const terkunci = lama.status === "Selesai" || lama.perlu_eskalasi === true;
+  if (terkunci && pengguna.peran !== "Admin") {
+    return {
+      pesan:
+        lama.status === "Selesai"
+          ? "Komplain ini sudah selesai, jadi datanya tidak bisa diubah lagi. Hubungi Admin bila memang ada yang keliru."
+          : "Komplain ini sudah dieskalasi ke komite, jadi datanya dikunci. Hubungi Admin bila memang ada yang keliru.",
+      kode: null,
+    };
+  }
+
+  // Pemeriksaan isian sama persis dengan saat mencatat — kalau
+  // berbeda, data yang tidak boleh lahir kosong bisa dikosongkan
+  // lewat pintu belakang ini.
+  const wajib: Record<string, string> = {
+    pelapor_nama: "Nama pelapor",
+    pelapor_hp: "No. HP pelapor",
+    pasien_nama: "Nama pasien",
+    jalur_pelaporan: "Jalur pelaporan",
+    media_pelaporan: "Media pelaporan",
+    sumber_pelaporan: "Sumber pelaporan",
+    detail_masalah: "Detail komplain",
+  };
+  for (const [kolom, sebutan] of Object.entries(wajib)) {
+    if (!isi(formData, kolom)) return { pesan: `${sebutan} harus diisi.`, kode: null };
+  }
+
+  const kategori = formData.getAll("kategori_masalah").map(String);
+  if (kategori.length === 0) {
+    return { pesan: "Kategori masalah harus dipilih, boleh lebih dari satu.", kode: null };
+  }
+  const kategoriLain = isi(formData, "kategori_lain");
+  if (kategori.includes(LAINNYA) && kategoriLain === "") {
+    return { pesan: 'Kategori "Lainnya" harus disertai keterangan singkat.', kode: null };
+  }
+
+  const waktuPelaporan = dariIsianWaktu(isi(formData, "waktu_pelaporan"));
+
+  const baru: Record<string, unknown> = {
+    ...(waktuPelaporan ? { waktu_pelaporan: waktuPelaporan } : {}),
+    pelapor_nama: isi(formData, "pelapor_nama"),
+    pelapor_hp: isi(formData, "pelapor_hp"),
+    pelapor_alamat: isiAtauNull(formData, "pelapor_alamat"),
+    pasien_nama: isi(formData, "pasien_nama"),
+    pasien_tgl_lahir: isiAtauNull(formData, "pasien_tgl_lahir"),
+    pasien_no_rm: isiAtauNull(formData, "pasien_no_rm"),
+    pasien_hp: isiAtauNull(formData, "pasien_hp"),
+    pasien_alamat: isiAtauNull(formData, "pasien_alamat"),
+    jalur_pelaporan: isi(formData, "jalur_pelaporan"),
+    media_pelaporan: isi(formData, "media_pelaporan"),
+    kategori_masalah: gabungKategori(kategori, kategoriLain),
+    sumber_pelaporan: isi(formData, "sumber_pelaporan"),
+    detail_masalah: isi(formData, "detail_masalah"),
+    kepuasan_awal: isiAtauNull(formData, "kepuasan_awal"),
+  };
+
+  const perubahan = daftarPerubahan(lama, baru);
+
+  // Menyimpan tanpa ada yang berubah tetap akan menulis baris
+  // riwayat kosong, dan riwayat yang penuh baris "tidak ada
+  // perubahan" membuat yang sungguhan sulit dicari.
+  if (perubahan.length === 0) {
+    return { pesan: "Tidak ada yang berubah.", kode: null };
+  }
+
+  const { error } = await supabase.from("komplain").update(baru).eq("id", id);
+  if (error) return { pesan: `Gagal menyimpan: ${error.message}`, kode: null };
+
+  await supabase.from("komplain_riwayat").insert({
+    komplain_id: id,
+    aktivitas: "Data diperbaiki",
+    detail: perubahan.join("; "),
+    oleh: pengguna.id,
+  });
+
+  revalidatePath("/komplain");
+  revalidatePath(`/komplain/${id}`);
+  return { pesan: null, kode: String(lama.kode) };
+}
+
+/**
  * Menyimpan tindak lanjut.
  *
  * Waktu ditanggapi diisi sekali saja, saat pertama kali

@@ -33,7 +33,7 @@ function Baris({ label, nilai }: { label: string; nilai: string | null }) {
 export default async function HalamanDetailKomplain({
   params,
 }: PageProps<"/komplain/[id]">) {
-  await wajibAkses("komplain");
+  const pengguna = await wajibAkses("komplain");
   const { id } = await params;
 
   const supabase = await createClient();
@@ -52,6 +52,14 @@ export default async function HalamanDetailKomplain({
     .order("pada", { ascending: false });
 
   const pencatat = Array.isArray(k.pengguna) ? k.pengguna[0] : k.pengguna;
+
+  /**
+   * Komplain yang sudah selesai atau sudah naik ke komite tidak lagi
+   * boleh disunting sembarang orang. Memperbaiki salah ketik itu
+   * wajar; mengubah isi laporan sesudah ia ditandatangani dan
+   * diteruskan bukan lagi perbaikan.
+   */
+  const terkunci = k.status === "Selesai" || k.perlu_eskalasi === true;
 
   const awal: NilaiAwal = {
     id: k.id,
@@ -84,6 +92,27 @@ export default async function HalamanDetailKomplain({
           Dilaporkan {waktuPanjang.format(new Date(k.waktu_pelaporan))}
           {pencatat && ` · dicatat oleh ${pencatat.nama}`}
         </p>
+        {/* Tombol ubah ditaruh di kepala, bukan berbaur dengan
+            tombol cetak di bawah: yang mencari tombol ini sedang
+            menyadari ada yang keliru, dan tempat ia menyadarinya
+            adalah saat membaca datanya di sini. */}
+        {(!terkunci || pengguna.peran === "Admin") && (
+          <Link
+            prefetch={false}
+            href={`/komplain/${k.id}/ubah`}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-garis px-3 py-1.5 text-sm font-medium text-tinta-2 hover:bg-permukaan-2"
+          >
+            Ubah data
+          </Link>
+        )}
+        {terkunci && pengguna.peran !== "Admin" && (
+          <p className="mt-3 text-sm text-tinta-3">
+            Data komplain ini terkunci karena{" "}
+            {k.status === "Selesai" ? "sudah selesai" : "sudah dieskalasi"}.
+            Hubungi Admin bila ada yang keliru.
+          </p>
+        )}
+
         {k.sla_jam !== null && (
           <p className={`mt-1 text-sm ${k.sla_status === "Breach" ? "text-merah" : "text-hijau"}`}>
             Ditanggapi setelah {Number(k.sla_jam)} jam

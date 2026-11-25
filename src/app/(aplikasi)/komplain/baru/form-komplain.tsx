@@ -2,9 +2,9 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { catatKomplain } from "@/lib/komplain-actions";
+import { catatKomplain, ubahKomplain } from "@/lib/komplain-actions";
 import { komplainAwal } from "@/lib/hasil";
-import { JALUR, MEDIA, KATEGORI, LAINNYA, SUMBER, KEPUASAN } from "@/lib/komplain-pilihan";
+import { JALUR, MEDIA, KATEGORI, LAINNYA, SUMBER, KEPUASAN, pecahKategori, pokokKategori, labelKategori} from "@/lib/komplain-pilihan";
 
 const gaya =
   "rounded border border-garis bg-permukaan px-3 py-2 outline-none focus:border-hijau focus:ring-2 focus:ring-hijau-muda";
@@ -43,12 +43,48 @@ function Judul({ anak }: { anak: string }) {
  * cara yang benar adalah memasang ulang formulirnya — bukan memuat
  * ulang seluruh halaman, yang membuang waktu petugas.
  */
-export function FormKomplain({ waktuSekarang }: { waktuSekarang: string }) {
+/**
+ * Nilai yang sudah tersimpan, saat formulir ini dipakai untuk
+ * MENGUBAH komplain yang sudah ada.
+ *
+ * Formulirnya satu, bukan dua yang kembar. Daftar field di sini
+ * harus sama persis dengan yang dicetak di formulir resmi; dua
+ * salinan berarti cepat atau lambat yang satu ketinggalan saat
+ * yang lain diperbaiki.
+ */
+export type AwalKomplain = {
+  id: number;
+  kode: string;
+  waktu_pelaporan: string;
+  pelapor_nama: string;
+  pelapor_hp: string;
+  pelapor_alamat: string;
+  pasien_nama: string;
+  pasien_tgl_lahir: string;
+  pasien_no_rm: string;
+  pasien_hp: string;
+  pasien_alamat: string;
+  jalur_pelaporan: string;
+  media_pelaporan: string;
+  kategori_masalah: string;
+  sumber_pelaporan: string;
+  kepuasan_awal: string;
+  detail_masalah: string;
+};
+
+export function FormKomplain({
+  waktuSekarang,
+  awal,
+}: {
+  waktuSekarang: string;
+  awal?: AwalKomplain;
+}) {
   const [ulang, setUlang] = useState(0);
   return (
     <IsiFormulir
       key={ulang}
       waktuSekarang={waktuSekarang}
+      awal={awal}
       mulaiLagi={() => setUlang((n) => n + 1)}
     />
   );
@@ -56,18 +92,57 @@ export function FormKomplain({ waktuSekarang }: { waktuSekarang: string }) {
 
 function IsiFormulir({
   waktuSekarang,
+  awal,
   mulaiLagi,
 }: {
   waktuSekarang: string;
+  awal?: AwalKomplain;
   mulaiLagi: () => void;
 }) {
-  const [hasil, kirim, sedang] = useActionState(catatKomplain, komplainAwal);
+  const mengubah = Boolean(awal);
+  const [hasil, kirim, sedang] = useActionState(
+    mengubah ? ubahKomplain : catatKomplain,
+    komplainAwal,
+  );
+
+  // Kategori tersimpan sebagai satu tulisan dipisah koma, dan
+  // "Lainnya" membawa keterangannya sendiri di belakang titik dua.
+  const kategoriTersimpan = pecahKategori(awal?.kategori_masalah);
+  const kategoriPokok = kategoriTersimpan.map(pokokKategori);
+  const keteranganLain = kategoriTersimpan
+    .filter((k) => pokokKategori(k) === LAINNYA)
+    .map(labelKategori)
+    .join("; ");
 
   // Kotak keterangan hanya muncul saat "Lainnya" dicentang. Ditampilkan
   // terus-menerus, ia jadi pertanyaan yang tidak relevan bagi sebagian
   // besar komplain; disembunyikan sama sekali, keterangannya tidak
   // pernah tertulis.
-  const [adaLainnya, setAdaLainnya] = useState(false);
+  const [adaLainnya, setAdaLainnya] = useState(kategoriPokok.includes(LAINNYA));
+
+  if (hasil.kode && mengubah) {
+    return (
+      <div className="rounded-xl shadow-lembut border border-garis bg-permukaan p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-tinta-3">
+          Perubahan tersimpan
+        </p>
+        <p className="mt-3 font-mono text-2xl font-semibold">{hasil.kode}</p>
+        <p className="mt-2 text-sm text-tinta-2">
+          Apa saja yang berubah tercatat di riwayat komplain ini, berikut nilai
+          lamanya.
+        </p>
+        <div className="mt-5">
+          <Link
+            prefetch={false}
+            href={`/komplain/${awal!.id}`}
+            className="rounded-lg bg-hijau px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            Kembali ke komplain
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (hasil.kode) {
     return (
@@ -101,17 +176,18 @@ function IsiFormulir({
 
   return (
     <form action={kirim} className="flex flex-col gap-8">
+      {mengubah && <input type="hidden" name="id" value={awal!.id} />}
       <section className="flex flex-col gap-4">
         <Judul anak="Data pelapor" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Label judul="Nama pelapor" wajib anak={<input name="pelapor_nama" required className={gaya} />} />
+          <Label judul="Nama pelapor" wajib anak={<input name="pelapor_nama" required defaultValue={awal?.pelapor_nama} className={gaya} />} />
           <Label
             judul="No. HP / WhatsApp"
             wajib
-            anak={<input name="pelapor_hp" required placeholder="08xxxxxxxxxx" className={gaya} />}
+            anak={<input name="pelapor_hp" required defaultValue={awal?.pelapor_hp} placeholder="08xxxxxxxxxx" className={gaya} />}
           />
           <div className="sm:col-span-2">
-            <Label judul="Alamat pelapor" anak={<input name="pelapor_alamat" className={`${gaya} w-full`} />} />
+            <Label judul="Alamat pelapor" anak={<input name="pelapor_alamat" defaultValue={awal?.pelapor_alamat} className={`${gaya} w-full`} />} />
           </div>
         </div>
       </section>
@@ -119,12 +195,12 @@ function IsiFormulir({
       <section className="flex flex-col gap-4">
         <Judul anak="Data pasien" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Label judul="Nama pasien" wajib anak={<input name="pasien_nama" required className={gaya} />} />
-          <Label judul="Tanggal lahir" anak={<input name="pasien_tgl_lahir" type="date" className={gaya} />} />
-          <Label judul="No. rekam medis" anak={<input name="pasien_no_rm" className={gaya} />} />
-          <Label judul="No. HP pasien / keluarga" anak={<input name="pasien_hp" className={gaya} />} />
+          <Label judul="Nama pasien" wajib anak={<input name="pasien_nama" required defaultValue={awal?.pasien_nama} className={gaya} />} />
+          <Label judul="Tanggal lahir" anak={<input name="pasien_tgl_lahir" type="date" defaultValue={awal?.pasien_tgl_lahir} className={gaya} />} />
+          <Label judul="No. rekam medis" anak={<input name="pasien_no_rm" defaultValue={awal?.pasien_no_rm} className={gaya} />} />
+          <Label judul="No. HP pasien / keluarga" anak={<input name="pasien_hp" defaultValue={awal?.pasien_hp} className={gaya} />} />
           <div className="sm:col-span-2">
-            <Label judul="Alamat pasien" anak={<input name="pasien_alamat" className={`${gaya} w-full`} />} />
+            <Label judul="Alamat pasien" anak={<input name="pasien_alamat" defaultValue={awal?.pasien_alamat} className={`${gaya} w-full`} />} />
           </div>
         </div>
       </section>
@@ -145,7 +221,7 @@ function IsiFormulir({
                   name="waktu_pelaporan"
                   type="datetime-local"
                   required
-                  defaultValue={waktuSekarang}
+                  defaultValue={awal?.waktu_pelaporan ?? waktuSekarang}
                   className={gaya}
                 />
               }
@@ -155,7 +231,7 @@ function IsiFormulir({
             judul="Jalur pelaporan"
             wajib
             anak={
-              <select name="jalur_pelaporan" required defaultValue="" className={gaya}>
+              <select name="jalur_pelaporan" required defaultValue={awal?.jalur_pelaporan ?? ""} className={gaya}>
                 <option value="" disabled>— Pilih jalur —</option>
                 {JALUR.map((j) => <option key={j}>{j}</option>)}
               </select>
@@ -165,7 +241,7 @@ function IsiFormulir({
             judul="Media pelaporan"
             wajib
             anak={
-              <select name="media_pelaporan" required defaultValue="" className={gaya}>
+              <select name="media_pelaporan" required defaultValue={awal?.media_pelaporan ?? ""} className={gaya}>
                 <option value="" disabled>— Pilih media —</option>
                 {MEDIA.map((m) => <option key={m}>{m}</option>)}
               </select>
@@ -197,6 +273,7 @@ function IsiFormulir({
                   type="checkbox"
                   name="kategori_masalah"
                   value={k}
+                  defaultChecked={kategoriPokok.includes(k)}
                   onChange={
                     k === LAINNYA
                       ? (e) => setAdaLainnya(e.target.checked)
@@ -214,6 +291,7 @@ function IsiFormulir({
               name="kategori_lain"
               required
               autoFocus
+              defaultValue={keteranganLain}
               placeholder="Kategori lainnya — tulis singkat, misalnya: parkir penuh"
               className={`${gaya} mt-1 w-full text-sm`}
             />
@@ -225,7 +303,7 @@ function IsiFormulir({
             judul="Sumber pelaporan"
             wajib
             anak={
-              <select name="sumber_pelaporan" required defaultValue="" className={gaya}>
+              <select name="sumber_pelaporan" required defaultValue={awal?.sumber_pelaporan ?? ""} className={gaya}>
                 <option value="" disabled>— Pilih sumber —</option>
                 {SUMBER.map((s) => <option key={s}>{s}</option>)}
               </select>
@@ -234,7 +312,7 @@ function IsiFormulir({
           <Label
             judul="Tingkat kepuasan awal"
             anak={
-              <select name="kepuasan_awal" defaultValue="" className={gaya}>
+              <select name="kepuasan_awal" defaultValue={awal?.kepuasan_awal ?? ""} className={gaya}>
                 <option value="">— Belum ditanyakan —</option>
                 {KEPUASAN.map((k) => <option key={k}>{k}</option>)}
               </select>
@@ -244,7 +322,7 @@ function IsiFormulir({
             <Label
               judul="Detail komplain"
               wajib
-              anak={<textarea name="detail_masalah" required rows={6} className={`${gaya} w-full`} />}
+              anak={<textarea name="detail_masalah" required rows={6} defaultValue={awal?.detail_masalah} className={`${gaya} w-full`} />}
             />
           </div>
         </div>
@@ -262,10 +340,10 @@ function IsiFormulir({
           disabled={sedang}
           className="rounded-lg bg-hijau px-5 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
-          {sedang ? "Menyimpan…" : "Simpan komplain"}
+          {sedang ? "Menyimpan…" : mengubah ? "Simpan perubahan" : "Simpan komplain"}
         </button>
         <Link prefetch={false}
-          href="/komplain"
+          href={mengubah ? `/komplain/${awal!.id}` : "/komplain"}
           className="rounded-lg border border-garis px-5 py-2.5 font-medium text-tinta-2 hover:bg-permukaan-2"
         >
           Batal
