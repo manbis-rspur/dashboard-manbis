@@ -5,6 +5,7 @@ import { getPenggunaAktif } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { gabungKategori, LAINNYA } from "@/lib/komplain-pilihan";
 import { dariIsianWaktu } from "@/lib/waktu";
+import { rapikanDenganAI } from "@/lib/bahasa-ai";
 
 import type { HasilKomplain } from "@/lib/hasil";
 
@@ -82,6 +83,7 @@ export async function catatKomplain(
       kategori_masalah: gabungKategori(kategori, kategoriLain),
       sumber_pelaporan: isi(formData, "sumber_pelaporan"),
       detail_masalah: isi(formData, "detail_masalah"),
+      detail_masalah_asli: isiAtauNull(formData, "detail_masalah_asli"),
       kepuasan_awal: isiAtauNull(formData, "kepuasan_awal"),
       dicatat_oleh: pengguna.id,
     })
@@ -256,6 +258,7 @@ export async function ubahKomplain(
     kategori_masalah: gabungKategori(kategori, kategoriLain),
     sumber_pelaporan: isi(formData, "sumber_pelaporan"),
     detail_masalah: isi(formData, "detail_masalah"),
+    detail_masalah_asli: isiAtauNull(formData, "detail_masalah_asli"),
     kepuasan_awal: isiAtauNull(formData, "kepuasan_awal"),
   };
 
@@ -415,4 +418,24 @@ export async function aturAkses(formData: FormData) {
   }
 
   revalidatePath("/pengaturan/pengguna");
+}
+
+/**
+ * Menawarkan versi baku dari detail komplain.
+ *
+ * Hanya MENAWARKAN: tidak ada yang tersimpan di sini. Petugas
+ * melihat sebelum dan sesudahnya berdampingan, lalu memutuskan
+ * sendiri. Teks laporan orang tidak pantas berubah tanpa ada
+ * manusia yang melihat perubahannya.
+ */
+export async function usulkanBahasaBaku(
+  teks: string,
+): Promise<{ teks: string | null; pesan: string | null }> {
+  const pengguna = await getPenggunaAktif();
+  if (!pengguna) return { teks: null, pesan: "Sesi Anda sudah berakhir. Masuk lagi." };
+
+  const hasil = await rapikanDenganAI(teks);
+  return hasil.ok
+    ? { teks: hasil.teks, pesan: null }
+    : { teks: null, pesan: hasil.sebab };
 }

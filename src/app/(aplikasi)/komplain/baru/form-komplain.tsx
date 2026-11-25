@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { catatKomplain, ubahKomplain } from "@/lib/komplain-actions";
+import { KotakDetail } from "./kotak-detail";
 import { komplainAwal } from "@/lib/hasil";
 import { JALUR, MEDIA, KATEGORI, LAINNYA, SUMBER, KEPUASAN, pecahKategori, pokokKategori, labelKategori} from "@/lib/komplain-pilihan";
 
@@ -70,6 +71,7 @@ export type AwalKomplain = {
   sumber_pelaporan: string;
   kepuasan_awal: string;
   detail_masalah: string;
+  detail_masalah_asli: string | null;
 };
 
 export function FormKomplain({
@@ -322,7 +324,13 @@ function IsiFormulir({
             <Label
               judul="Detail komplain"
               wajib
-              anak={<textarea name="detail_masalah" required rows={6} defaultValue={awal?.detail_masalah} className={`${gaya} w-full`} />}
+              anak={
+                <KotakDetail
+                  awal={awal?.detail_masalah ?? ""}
+                  asliAwal={awal?.detail_masalah_asli ?? null}
+                  gaya={`${gaya} w-full`}
+                />
+              }
             />
           </div>
         </div>

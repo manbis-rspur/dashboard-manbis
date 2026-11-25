@@ -5,6 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 import { keIsianWaktu, sekarangIsianWaktu } from "@/lib/waktu";
 import { FormKomplain, type AwalKomplain } from "../../baru/form-komplain";
 
+/**
+ * Perapian bahasa dengan AI berjalan sebagai server action dari
+ * halaman ini, dan Gemini kerap butuh belasan detik -- apalagi
+ * bila model utama sedang penuh dan harus diulang. Batas bawaan
+ * Vercel memutusnya di tengah jalan, dan petugas cuma melihat
+ * tombol yang menggantung tanpa sebab.
+ */
+export const maxDuration = 60;
+
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Ubah Data Komplain" };
 
@@ -60,6 +69,9 @@ export default async function HalamanUbahKomplain({
     sumber_pelaporan: teks(data.sumber_pelaporan),
     kepuasan_awal: teks(data.kepuasan_awal),
     detail_masalah: teks(data.detail_masalah),
+    // Dibawa supaya kata asli pelapor tidak lenyap hanya karena
+    // komplainnya pernah disunting lagi.
+    detail_masalah_asli: data.detail_masalah_asli ?? null,
   };
 
   return (
